@@ -20,7 +20,7 @@ namespace Sbs20.Syncotron
 
         private string Path(FileItem file)
         {
-            return file.IsLocal ?
+            return file.Source == FileService.Local ?
                 file.Path.Substring(this.ReplicatorArgs.LocalPath.Length) :
                 file.Path.Substring(this.ReplicatorArgs.RemotePath.Length);
         }
@@ -50,7 +50,7 @@ namespace Sbs20.Syncotron
                     this.FilePairs[filePair.Key] = filePair;
                 }
 
-                if (file.IsLocal)
+                if (file.Source == FileService.Local)
                 {
                     filePair.Local = file;
                     this.LocalFileCount++;

@@ -58,6 +58,15 @@ namespace Sbs20.Syncotron
 
         public async Task ForEachAsync(string path, bool recursive, bool deleted, Action<FileItem> action)
         {
+            Action<Metadata> handleEntry = (entry) =>
+            {
+                var item = FileItem.Create(entry);
+                if (item.Path != this.replicatorArgs.RemotePath)
+                {
+                    action(item);
+                }
+            };
+
             var client = Client();
 
             ListFolderResult result = await client.Files.ListFolderAsync(
@@ -65,8 +74,7 @@ namespace Sbs20.Syncotron
 
             foreach (var entry in result.Entries)
             {
-                var item = FileItem.Create(entry);
-                action(item);
+                handleEntry(entry);
             }
 
             while (result.HasMore)
@@ -75,8 +83,7 @@ namespace Sbs20.Syncotron
 
                 foreach (var entry in result.Entries)
                 {
-                    var item = FileItem.Create(entry);
-                    action(item);
+                    handleEntry(entry);
                 }
             }
         }
@@ -169,11 +176,7 @@ namespace Sbs20.Syncotron
 
             if (fileItem.IsFolder)
             {
-                DirectoryInfo dir = new DirectoryInfo(localName);
-                if (!dir.Exists)
-                {
-                    dir.Create();
-                }
+                new LocalFilesystemService().CreateDirectory(fileItem.Path);
             }
             else
             {
@@ -192,29 +195,10 @@ namespace Sbs20.Syncotron
                         localFile.Delete();
                     }
 
-                    using (Stream localStream = localFile.OpenWrite())
+                    using (var downloadStream = await response.GetContentAsStreamAsync())
                     {
-                        using (var downloadStream = await response.GetContentAsStreamAsync())
-                        {
-                            byte[] buffer = new byte[1 << 16];
-                            int read;
-                            while ((read = await downloadStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-                            {
-                                await localStream.WriteAsync(buffer, 0, read);
-                            }
-                        }
-                    }
-
-                    // We will attempt to set the last modified time.
-                    bool success = false;
-                    while (!success)
-                    {
-                        try
-                        {
-                            localFile.LastWriteTimeUtc = remoteFile.ClientModified;
-                            success = true;
-                        }
-                        catch { await Task.Delay(50); }
+                        var fs = new LocalFilesystemService();
+                        await fs.WriteAsync(localFile.FullName, downloadStream, remoteFile.Rev, remoteFile.ClientModified);
                     }
 
                     Logger.verbose(this, "download():done");

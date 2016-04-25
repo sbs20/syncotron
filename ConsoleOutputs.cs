@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Sbs20.Syncotron
 {
@@ -113,7 +114,6 @@ namespace Sbs20.Syncotron
             this.WriteLine("Download rate (mb/s): {0:0.00}", this.DownloadRate);
             this.WriteLine("Uploaded rate (mb/s): {0:0.00}", this.UploadRate);
             this.WriteLine("Exception count: {0}", replicator.Exceptions.Count);
-
 
             for (int index = 0; index < replicator.Exceptions.Count; index++)
             {

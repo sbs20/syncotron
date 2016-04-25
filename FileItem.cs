@@ -1,30 +1,44 @@
 ﻿using Dropbox.Api.Files;
 using System;
 using System.IO;
+using System.Security.Cryptography;
 
 namespace Sbs20.Syncotron
 {
     public class FileItem
     {
-        public bool IsFolder { get; private set; }
-        public string Name { get; private set; }
-        public string Path { get; private set; }
-        public string Id { get; private set; }
-        public string Rev { get; private set; }
-        public ulong Size { get; private set; }
-        public DateTime LastModified { get; private set; }
-        public DateTime ClientModified { get; private set; }
-        public object Object { get; private set; }
-        public bool IsLocal { get; private set; }
+        public FileService Source { get; set; }
+        public bool IsFolder { get; set; }
+        public string Name { get; set; }
+        public string Path { get; set; }
+        public string Id { get; set; }
+        public string Rev { get; set; }
+        public ulong Size { get; set; }
+        public DateTime LastModified { get; set; }
+        public DateTime ClientModified { get; set; }
+        public object Object { get; set; }
 
-        private FileItem()
+        public FileItem()
         {
+        }
+
+        private static string GetRev(FileInfo fileInfo)
+        {
+            using (var md5 = MD5.Create())
+            {
+                using (var stream = fileInfo.OpenRead())
+                {
+                    var hash = md5.ComputeHash(stream);
+                    return Convert.ToBase64String(hash);
+                }
+            }
         }
 
         public static FileItem Create(FileMetadata dbxfile)
         {
             return new FileItem
             {
+                Source = FileService.Dropbox,
                 IsFolder = false,
                 Name = dbxfile.Name,
                 Path = dbxfile.PathDisplay,
@@ -33,8 +47,7 @@ namespace Sbs20.Syncotron
                 Size = dbxfile.Size,
                 LastModified = dbxfile.ServerModified,
                 ClientModified = dbxfile.ClientModified,
-                Object = dbxfile,
-                IsLocal = false
+                Object = dbxfile
             };
         }
 
@@ -42,6 +55,7 @@ namespace Sbs20.Syncotron
         {
             return new FileItem
             {
+                Source = FileService.Dropbox,
                 IsFolder = true,
                 Name = dbxfolder.Name,
                 Path = dbxfolder.PathDisplay,
@@ -50,8 +64,7 @@ namespace Sbs20.Syncotron
                 Size = 0,
                 LastModified = DateTime.MinValue,
                 ClientModified = DateTime.MinValue,
-                Object = dbxfolder,
-                IsLocal = false
+                Object = dbxfolder
             };
         }
 
@@ -73,16 +86,16 @@ namespace Sbs20.Syncotron
         {
             return new FileItem
             {
+                Source = FileService.Local,
                 IsFolder = false,
                 Name = file.Name,
                 Path = file.FullName.Replace("\\", "/"),
                 Id = string.Empty,
-                Rev = string.Empty,
+                Rev = FileItem.GetRev(file),
                 Size = (ulong)file.Length,
                 LastModified = file.LastWriteTimeUtc,
                 ClientModified = file.LastWriteTimeUtc,
-                Object = file,
-                IsLocal = true
+                Object = file
             };
         }
 
@@ -90,7 +103,8 @@ namespace Sbs20.Syncotron
         {
             return new FileItem
             {
-                IsFolder = false,
+                Source = FileService.Local,
+                IsFolder = true,
                 Name = dir.Name,
                 Path = dir.FullName.Replace("\\", "/"),
                 Id = string.Empty,
@@ -98,8 +112,7 @@ namespace Sbs20.Syncotron
                 Size = 0,
                 LastModified = dir.LastWriteTimeUtc,
                 ClientModified = dir.LastWriteTimeUtc,
-                Object = dir,
-                IsLocal = true
+                Object = dir
             };
         }
     }
