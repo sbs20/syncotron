@@ -13,7 +13,7 @@ namespace Sbs20.Syncotron
 
         public static Uri StartAuthorisation()
         {
-            string clientId = Properties.Settings.Default.Dropbox_ClientId;
+            string clientId = Settings.Dropbox_ClientId;
 
             // The user should go to this URI, login and get a code... and enter that into FinishAuthorisation
             return DropboxOAuth2Helper.GetAuthorizeUri(clientId);
@@ -21,11 +21,12 @@ namespace Sbs20.Syncotron
 
         public static async Task FinishAuthorisation(string code)
         {
-            string clientId = Properties.Settings.Default.Dropbox_ClientId;
-            string secret = Properties.Settings.Default.Dropbox_Secret;
+            string clientId = Settings.Dropbox_ClientId;
+            string secret = Settings.Dropbox_Secret;
             OAuth2Response oauthResponse = await DropboxOAuth2Helper.ProcessCodeFlowAsync(code, clientId, secret);
             string accessToken = oauthResponse.AccessToken;
-            Properties.Settings.Default.Dropbox_AccessToken = accessToken;
+            // TODO
+//            Properties.Settings.Default.Dropbox_AccessToken = accessToken;
         }
 
         public static DropboxClient Client()
@@ -39,7 +40,7 @@ namespace Sbs20.Syncotron
                     UserAgent = userAgent
                 };
 
-                string accessToken = Properties.Settings.Default.Dropbox_AccessToken;
+                string accessToken = Settings.Dropbox_AccessToken;
                 if (string.IsNullOrEmpty(accessToken))
                 {
                     throw new InvalidOperationException("Invalid access token");

@@ -19,7 +19,7 @@ namespace Sbs20.Syncotron
                 LastRun = DateTime.MinValue,
                 LocalPath = arguments["LocalPath"],
                 RemotePath = arguments["RemotePath"],
-                ReplicationType = ReplicationType.Snapshot,
+                ReplicationType = ReplicationType.AnalysisOnly,
                 ReplicationDirection = ReplicationDirection.MirrorDown,
                 ProcessingMode = ProcessingMode.Parallel,
                 Exclusions = { "*/.@__Thumb*" },
