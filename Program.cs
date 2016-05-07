@@ -10,30 +10,31 @@ namespace Sbs20.Syncotron
         // http://www.mono-project.com/docs/getting-started/mono-basics/
         //  export MONO_IOMAP=all
 
-        private static ReplicatorArgs ToReplicatorArgs(string[] args)
+        private static ReplicatorContext ToReplicatorContext(string[] args)
         {
             var arguments = ConsoleHelper.ReadArguments(args);
 
-            var replicatorArgs = new ReplicatorArgs
+            var context = new ReplicatorContext
             {
                 LastRun = DateTime.MinValue,
                 LocalPath = arguments["LocalPath"],
                 RemotePath = arguments["RemotePath"],
-                ReplicationType = ReplicationType.AnalysisOnly,
+                ReplicationType = ReplicationType.Snapshot,
                 ReplicationDirection = ReplicationDirection.MirrorDown,
                 ProcessingMode = ProcessingMode.Parallel,
+                HashProviderType = HashProviderType.FileDateTimeAndSize,
                 Exclusions = { "*/.@__Thumb*" },
                 MaximumConcurrency = 3,
                 IgnoreCertificateErrors = true
             };
 
-            return replicatorArgs;
+            return context;
         }
 
         static void Main(string[] args)
         {
-            var replicatorArgs = ToReplicatorArgs(args);
-            Replicator replicator = new Replicator(replicatorArgs);
+            var context = ToReplicatorContext(args);
+            Replicator replicator = new Replicator(context);
 
             var outputs = new ConsoleOutputs();
 

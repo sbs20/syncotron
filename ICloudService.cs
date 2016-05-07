@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Sbs20.Syncotron
 {
-    interface ICloudService : IFileItemProvider
+    public interface ICloudService : IFileItemProvider
     {
         Task DownloadAsync(FileItem fileItem, String localName);
         Task DownloadAsync(FileItem file);

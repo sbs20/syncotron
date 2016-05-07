@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Sbs20.Syncotron
 {
-    interface IFileItemProvider
+    public interface IFileItemProvider
     {
         Task ForEachAsync(string path, bool recursive, bool deleted, Action<FileItem> action);
         Task MoveAsync(FileItem file, string desiredPath);

@@ -22,18 +22,6 @@ namespace Sbs20.Syncotron
         {
         }
 
-        private static string GetRev(FileInfo fileInfo)
-        {
-            using (var md5 = MD5.Create())
-            {
-                using (var stream = fileInfo.OpenRead())
-                {
-                    var hash = md5.ComputeHash(stream);
-                    return Convert.ToBase64String(hash);
-                }
-            }
-        }
-
         public static FileItem Create(FileMetadata dbxfile)
         {
             return new FileItem
@@ -82,7 +70,7 @@ namespace Sbs20.Syncotron
             throw new InvalidOperationException("Unknown Metadata type");
         }
 
-        public static FileItem Create(FileInfo file)
+        public static FileItem Create(FileInfo file, IHashProvider hasher)
         {
             return new FileItem
             {
@@ -91,7 +79,7 @@ namespace Sbs20.Syncotron
                 Name = file.Name,
                 Path = file.FullName.Replace("\\", "/"),
                 Id = string.Empty,
-                Rev = FileItem.GetRev(file),
+                Rev = hasher.Hash(file),
                 Size = (ulong)file.Length,
                 LastModified = file.LastWriteTimeUtc,
                 ClientModified = file.LastWriteTimeUtc,

@@ -8,25 +8,21 @@ namespace Sbs20.Syncotron
 {
     public class Replicator
     {
-        private IFileItemProvider localService;
-        private ICloudService cloudService;
         private Matcher matcher;
         private IList<FileAction> actions;
 
         public event EventHandler<FileAction> ActionStart;
         public event EventHandler<FileAction> ActionComplete;
-        public ReplicatorArgs Arguments { get; set; }
+        public ReplicatorContext Context { get; set; }
         public IList<Exception> Exceptions { get; private set; }
 
-        public Replicator(ReplicatorArgs args)
+        public Replicator(ReplicatorContext context)
         {
-            this.Arguments = args;
-            this.localService = new LocalFilesystemService();
-            this.cloudService = new DropboxService(args);
+            this.Context = context;
             this.actions = new List<FileAction>();
             this.Exceptions = new List<Exception>();
 
-            if (args.IgnoreCertificateErrors)
+            if (context.IgnoreCertificateErrors)
             {
                 ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, errors) =>
                 {
@@ -87,19 +83,19 @@ namespace Sbs20.Syncotron
                 switch (action.Type)
                 {
                     case FileActionType.DeleteLocal:
-                        await this.localService.DeleteAsync(action.FilePair.Local);
+                        await this.Context.LocalFileSystem.DeleteAsync(action.FilePair.Local);
                         break;
 
                     case FileActionType.Download:
-                        await this.cloudService.DownloadAsync(action.FilePair.Remote);
+                        await this.Context.CloudService.DownloadAsync(action.FilePair.Remote);
                         break;
 
                     case FileActionType.DeleteRemote:
-                        await this.cloudService.DeleteAsync(action.FilePair.Remote);
+                        await this.Context.CloudService.DeleteAsync(action.FilePair.Remote);
                         break;
 
                     case FileActionType.Upload:
-                        await this.cloudService.UploadAsync(action.FilePair.Local);
+                        await this.Context.CloudService.UploadAsync(action.FilePair.Local);
                         break;
 
                     case FileActionType.ResolveConflict:
@@ -118,7 +114,7 @@ namespace Sbs20.Syncotron
 
         private async Task MatchFilesAsync()
         {
-            this.matcher = new Matcher(this.Arguments);
+            this.matcher = new Matcher(this.Context);
             await this.matcher.ScanAsync();
         }
 
@@ -144,7 +140,7 @@ namespace Sbs20.Syncotron
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 task.ContinueWith(t => tasks.Remove(t));
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                if (this.Arguments.ProcessingMode == ProcessingMode.Serial || tasks.Count > this.Arguments.MaximumConcurrency)
+                if (this.Context.ProcessingMode == ProcessingMode.Serial || tasks.Count > this.Context.MaximumConcurrency)
                 {
                     await task;
                 }
@@ -163,7 +159,7 @@ namespace Sbs20.Syncotron
                 // We always need to analyse what actions to do
                 this.CreateActions();
 
-                switch (this.Arguments.ReplicationType)
+                switch (this.Context.ReplicationType)
                 {
                     case ReplicationType.AnalysisOnly:
                         break;

@@ -45,12 +45,12 @@ namespace Sbs20.Syncotron
             return this.Type.ToString() + ":" + this.Key;
         }
 
-        private static IFileActionTypeChooser CreateFileActionChooser(ReplicatorArgs replicatorArgs)
+        private static IFileActionTypeChooser CreateFileActionChooser(ReplicatorContext context)
         {
-            switch (replicatorArgs.ReplicationDirection)
+            switch (context.ReplicationDirection)
             {
                 case ReplicationDirection.TwoWay:
-                    return new FileActionTypeChooserTwoWay(replicatorArgs.LastRun);
+                    return new FileActionTypeChooserTwoWay(context.LastRun);
 
                 case ReplicationDirection.MirrorDown:
                     return new FileActionTypeChooserMirrorDown();
@@ -85,11 +85,11 @@ namespace Sbs20.Syncotron
 
         public static void AppendAll(Matcher matches, IList<FileAction> actions)
         {
-            IFileActionTypeChooser chooser = CreateFileActionChooser(matches.ReplicatorArgs);
+            IFileActionTypeChooser chooser = CreateFileActionChooser(matches.Context);
 
             foreach (var item in matches.FilePairs)
             {
-                if (!MatchesExclusion(item.Key, matches.ReplicatorArgs.Exclusions))
+                if (!MatchesExclusion(item.Key, matches.Context.Exclusions))
                 {
                     FileActionType type = chooser.Choose(item.Value);
                     if (type != FileActionType.None)

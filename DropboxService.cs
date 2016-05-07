@@ -9,7 +9,7 @@ namespace Sbs20.Syncotron
     public class DropboxService : ICloudService
     {
         private static DropboxClient __client = null;
-        private ReplicatorArgs replicatorArgs = null;
+        private ReplicatorContext context = null;
 
         public static Uri StartAuthorisation()
         {
@@ -52,9 +52,9 @@ namespace Sbs20.Syncotron
             return __client;
         }
 
-        public DropboxService(ReplicatorArgs definition)
+        public DropboxService(ReplicatorContext context)
         {
-            this.replicatorArgs = definition;
+            this.context = context;
         }
 
         public async Task ForEachAsync(string path, bool recursive, bool deleted, Action<FileItem> action)
@@ -62,7 +62,7 @@ namespace Sbs20.Syncotron
             Action<Metadata> handleEntry = (entry) =>
             {
                 var item = FileItem.Create(entry);
-                if (item.Path != this.replicatorArgs.RemotePath)
+                if (item.Path != this.context.RemotePath)
                 {
                     action(item);
                 }
@@ -110,7 +110,7 @@ namespace Sbs20.Syncotron
             if (localFile != null)
             {
                 // Note - this is not ensuring the name is a valid dropbox file name
-                string remoteFileName = this.replicatorArgs.ToRemotePath(file.Path);
+                string remoteFileName = this.context.ToRemotePath(file.Path);
 
                 var client = Client();
                 CommitInfo commitInfo = new CommitInfo(
@@ -177,7 +177,7 @@ namespace Sbs20.Syncotron
 
             if (fileItem.IsFolder)
             {
-                new LocalFilesystemService().CreateDirectory(fileItem.Path);
+                this.context.LocalFileSystem.CreateDirectory(fileItem.Path);
             }
             else
             {
@@ -198,8 +198,7 @@ namespace Sbs20.Syncotron
 
                     using (var downloadStream = await response.GetContentAsStreamAsync())
                     {
-                        var fs = new LocalFilesystemService();
-                        await fs.WriteAsync(localFile.FullName, downloadStream, remoteFile.Rev, remoteFile.ClientModified);
+                        await this.context.LocalFileSystem.WriteAsync(localFile.FullName, downloadStream, remoteFile.Rev, remoteFile.ClientModified);
                     }
 
                     Logger.verbose(this, "download():done");
@@ -209,7 +208,7 @@ namespace Sbs20.Syncotron
 
         public async Task DownloadAsync(FileItem file)
         {
-            string localFileName = this.replicatorArgs.ToLocalPath(file.Path);
+            string localFileName = this.context.ToLocalPath(file.Path);
             await this.DownloadAsync(file, localFileName);
         }
 

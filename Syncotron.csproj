@@ -76,6 +76,7 @@
     <Compile Include="Controller.cs" />
     <Compile Include="Data\DbController.cs" />
     <Compile Include="Data\Enumerations.cs" />
+    <Compile Include="DateTimeSizeHash.cs" />
     <Compile Include="Enumerations.cs" />
     <Compile Include="FileActionTypeChooserMirrorDown.cs" />
     <Compile Include="FileActionTypeChooserMirrorUp.cs" />
@@ -84,6 +85,8 @@
     <Compile Include="IConflictResolver.cs" />
     <Compile Include="ConflictResolverAggressive.cs" />
     <Compile Include="IFileItemProvider.cs" />
+    <Compile Include="IHashProvider.cs" />
+    <Compile Include="LocalFilesystemDb.cs" />
     <Compile Include="LocalFilesystemService.cs" />
     <Compile Include="Matcher.cs" />
     <Compile Include="DropboxService.cs" />
@@ -92,12 +95,13 @@
     <Compile Include="FileItemPair.cs" />
     <Compile Include="IFileActionTypeChooser.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="MD5Hash.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReplicatorArgs.cs" />
+    <Compile Include="ReplicatorContext.cs" />
     <Compile Include="Replicator.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="Data\MonoSqlite.cs" />
+    <Compile Include="Data\MonoSqliteController.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

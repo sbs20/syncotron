@@ -8,127 +8,23 @@ using System.Threading.Tasks;
 namespace Sbs20.Syncotron
 {
     /// <summary>
-    /// TODO Make Singleton
+    /// This class mediates all interaction with the local file system. It is required
+    /// in order to 
+    ///   a) Use a common FileItem class
+    ///   b) Log all changes to a local database in order to derives changes
+    ///   
+    /// There should only ever be ONE of these objects in play at a time in order to
+    /// avoid SQLite concurrency issues
     /// </summary>
     public class LocalFilesystemService : IFileItemProvider
     {
-        private class LocalDb
+        private ReplicatorContext context;
+        private LocalFilesystemDb database;
+
+        public LocalFilesystemService(ReplicatorContext context)
         {
-            const string connectionString = "URI=file:SqliteTest.db";
-            private static MonoSqlite __sql;
-
-            static LocalDb()
-            {
-                __sql = new MonoSqlite(connectionString);
-                TableCreate();
-            }
-
-            public static MonoSqlite Sql
-            {
-                get { return __sql; }
-            }
-
-            private static void TableCreate()
-            {
-                Sql.ExecuteNonQuery(@"drop table if exists Scan;");
-
-                Sql.ExecuteNonQuery(@"create table if not exists Scan (
-                    Path nvarchar(1024) collate nocase,
-                    LocalRev varchar(64),
-                    ServerRev varchar(64),
-                    Size long,
-                    IsFolder boolean,
-                    LastModified varchar(19),
-                    ClientModified varchar(19)
-                );");
-
-                Sql.ExecuteNonQuery(@"create table if not exists Files (
-                    Path nvarchar(1024) collate nocase,
-                    LocalRev varchar(64),
-                    ServerRev varchar(64),
-                    Size long,
-                    IsFolder boolean,
-                    LastModified varchar(19),
-                    ClientModified varchar(19)
-                );");
-            }
-
-            public static void ScanDelete()
-            {
-                string sql = "delete from Scan;";
-                Sql.ExecuteNonQuery(sql);
-            }
-
-            public static void ScanInsert(FileItem fileItem)
-            {
-                string sql = string.Format("insert into Scan values ({0}, {1}, {2}, {3}, {4}, {5}, {6});",
-                    DbController.ToParameter(fileItem.Path),
-                    DbController.ToParameter(fileItem.Rev),
-                    DbController.ToParameter((string)null),
-                    DbController.ToParameter(fileItem.Size),
-                    DbController.ToParameter(fileItem.IsFolder),
-                    DbController.ToParameter(fileItem.LastModified),
-                    DbController.ToParameter(fileItem.ClientModified));
-
-                Sql.ExecuteNonQuery(sql);
-            }
-
-            public static void FileInsert(FileItem fileItem, string serverRev)
-            {
-                string sql = string.Format("delete from Files where Path={0}; insert into Files values ({0}, {1}, {2}, {3}, {4}, {5}, {6});",
-                    DbController.ToParameter(fileItem.Path),
-                    DbController.ToParameter(fileItem.Rev),
-                    DbController.ToParameter(serverRev),
-                    DbController.ToParameter(fileItem.Size),
-                    DbController.ToParameter(fileItem.IsFolder),
-                    DbController.ToParameter(fileItem.LastModified),
-                    DbController.ToParameter(fileItem.ClientModified));
-
-                Sql.ExecuteNonQuery(sql);
-            }
-
-            public static void FileInsert(FileItem fileItem)
-            {
-                FileInsert(fileItem, string.Empty);
-
-            }
-
-            private static FileItem ToFileItem(DataRow r)
-            {
-                string path = DbController.ToString(r["Path"]);
-                return new FileItem
-                {
-                    Path = path,
-                    Rev = DbController.ToString(r["LocalRev"]),
-                    IsFolder = DbController.ToBoolean(r["IsFolder"]),
-                    Size = (ulong)DbController.ToInt64(r["Size"]),
-                    LastModified = DbController.ToDateTime(r["LastModified"])
-                };
-            }
-
-            public static IEnumerable<FileItem> Changes()
-            {
-                string sql = @"select 'New' Action, *
-    from Scan
-    where Path not in (select Path from Files)
-union
-select 'Delete' Action, * 
-    from Files
-    where Path not in (select Path from Scan)
-union
-select 
-	'Change' Action, scan.*
-	from Files
-        inner join Scan on Files.Path = Scan.Path
-    where Files.LocalRev != Scan.LocalRev or Files.ServerRev != Scan.ServerRev";
-                return Sql.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r));
-            }
-
-            public static IEnumerable<FileItem> ScanRead()
-            {
-                string sql = @"select * from Scan";
-                return Sql.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r));
-            }
+            this.context = context;
+            this.database = new LocalFilesystemDb(context);
         }
 
         public Task DeleteAsync(FileItem file)
@@ -142,11 +38,11 @@ select
 
         public async Task ForEachAsync(string path, bool recursive, bool deleted, Action<FileItem> action)
         {
-            LocalDb.ScanDelete();
+            this.database.ScanDelete();
 
             Action<FileItem> internalAction = (fileItem) =>
             {
-                LocalDb.ScanInsert(fileItem);
+                this.database.ScanInsert(fileItem);
                 action(fileItem);
             };
 
@@ -162,7 +58,7 @@ select
 
                 foreach (var f in root.EnumerateFiles("*", option))
                 {
-                    var item = FileItem.Create(f);
+                    var item = FileItem.Create(f, this.context.HashProvider);
                     internalAction(item);
                 }
 
@@ -187,7 +83,7 @@ select
                 dir.Create();
             }
 
-            LocalDb.FileInsert(FileItem.Create(dir));
+            this.database.FileInsert(FileItem.Create(dir));
         }
 
         public async Task WriteAsync(string path, Stream stream, string serverRev, DateTime lastModified)
@@ -215,8 +111,8 @@ select
             }
 
             localFile.Refresh();
-            var item = FileItem.Create(localFile);
-            LocalDb.FileInsert(item, serverRev);
+            var item = FileItem.Create(localFile, this.context.HashProvider);
+            this.database.FileInsert(item, serverRev);
         }
     }
 }

@@ -5,9 +5,9 @@ using System.Data.Common;
 namespace Sbs20.Data
 {
     // http://www.mono-project.com/docs/database-access/providers/sqlite/
-    public class MonoSqlite : DbController
+    public class MonoSqliteController : DbController
     {
-        public MonoSqlite(string connectionString) :
+        public MonoSqliteController(string connectionString) :
             base(connectionString)
         { }
 

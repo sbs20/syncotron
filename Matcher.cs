@@ -9,20 +9,20 @@ namespace Sbs20.Syncotron
 
         public long LocalFileCount { get; set; }
         public long RemoteFileCount { get; set; }
-        public ReplicatorArgs ReplicatorArgs { get; private set; }
+        public ReplicatorContext Context { get; private set; }
         public Dictionary<string, FileItemPair> FilePairs { get; private set; }
 
-        public Matcher(ReplicatorArgs args)
+        public Matcher(ReplicatorContext context)
         {
-            this.ReplicatorArgs = args;
+            this.Context = context;
             this.FilePairs = new Dictionary<string, FileItemPair>();
         }
 
         private string Path(FileItem file)
         {
             return file.Source == FileService.Local ?
-                file.Path.Substring(this.ReplicatorArgs.LocalPath.Length) :
-                file.Path.Substring(this.ReplicatorArgs.RemotePath.Length);
+                file.Path.Substring(this.Context.LocalPath.Length) :
+                file.Path.Substring(this.Context.RemotePath.Length);
         }
 
         private string Key(FileItem file)
@@ -65,14 +65,13 @@ namespace Sbs20.Syncotron
 
         private async Task ScanRemoteAsync()
         {
-            IFileItemProvider cloudService = new DropboxService(this.ReplicatorArgs);
-            await cloudService.ForEachAsync(this.ReplicatorArgs.RemotePath, true, false, (item) => this.Add(item));
+            IFileItemProvider cloudService = new DropboxService(this.Context);
+            await cloudService.ForEachAsync(this.Context.RemotePath, true, false, (item) => this.Add(item));
         }
 
         private async Task ScanLocalAsync()
         {
-            IFileItemProvider service = new LocalFilesystemService();
-            await service.ForEachAsync(this.ReplicatorArgs.LocalPath, true, false, (item) => this.Add(item));
+            await this.Context.LocalFileSystem.ForEachAsync(this.Context.LocalPath, true, false, (item) => this.Add(item));
         }
 
         public async Task ScanAsync()

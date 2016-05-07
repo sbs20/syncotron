@@ -35,4 +35,10 @@
         Serial,
         Parallel
     }
+
+    public enum HashProviderType
+    {
+        FileDateTimeAndSize,
+        MD5
+    }
 }
