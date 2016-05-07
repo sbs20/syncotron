@@ -73,7 +73,6 @@
   <ItemGroup>
     <Compile Include="ConsoleHelper.cs" />
     <Compile Include="ConsoleOutputs.cs" />
-    <Compile Include="Controller.cs" />
     <Compile Include="Data\DbController.cs" />
     <Compile Include="Data\Enumerations.cs" />
     <Compile Include="DateTimeSizeHash.cs" />
