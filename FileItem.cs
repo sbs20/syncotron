@@ -24,39 +24,57 @@ namespace Sbs20.Syncotron
         {
         }
 
-        public static FileItem Create(FileMetadata dbxfile)
+        public static FileItem Create(FileMetadata dbxFile)
         {
             return new FileItem
             {
                 Source = FileService.Dropbox,
                 IsFolder = false,
-                IsDeleted = dbxfile.IsDeleted,
-                Name = dbxfile.Name,
-                Path = dbxfile.PathDisplay,
-                Id = dbxfile.Id,
-                ServerRev = dbxfile.Rev,
-                Size = dbxfile.Size,
-                LastModified = dbxfile.ServerModified,
-                ClientModified = dbxfile.ClientModified,
-                Object = dbxfile
+                IsDeleted = dbxFile.IsDeleted,
+                Name = dbxFile.Name,
+                Path = dbxFile.PathDisplay,
+                Id = dbxFile.Id,
+                ServerRev = dbxFile.Rev,
+                Size = dbxFile.Size,
+                LastModified = dbxFile.ServerModified,
+                ClientModified = dbxFile.ClientModified,
+                Object = dbxFile
             };
         }
 
-        public static FileItem Create(FolderMetadata dbxfolder)
+        public static FileItem Create(FolderMetadata dbxFolder)
         {
             return new FileItem
             {
                 Source = FileService.Dropbox,
                 IsFolder = true,
-                IsDeleted = dbxfolder.IsDeleted,
-                Name = dbxfolder.Name,
-                Path = dbxfolder.PathDisplay,
-                Id = dbxfolder.Id,
+                IsDeleted = dbxFolder.IsDeleted,
+                Name = dbxFolder.Name,
+                Path = dbxFolder.PathDisplay,
+                Id = dbxFolder.Id,
                 ServerRev = null,
                 Size = 0,
                 LastModified = DateTime.MinValue,
                 ClientModified = DateTime.MinValue,
-                Object = dbxfolder
+                Object = dbxFolder
+            };
+        }
+
+        public static FileItem Create(DeletedMetadata dbxDeleted)
+        {
+            return new FileItem
+            {
+                Source = FileService.Dropbox,
+                IsFolder = dbxDeleted.IsFolder,
+                IsDeleted = true,
+                Name = dbxDeleted.Name,
+                Path = dbxDeleted.PathDisplay,
+                Id = null,
+                ServerRev = null,
+                Size = 0,
+                LastModified = DateTime.MinValue,
+                ClientModified = DateTime.MinValue,
+                Object = dbxDeleted
             };
         }
 
@@ -69,6 +87,10 @@ namespace Sbs20.Syncotron
             else if (e is FolderMetadata)
             {
                 return FileItem.Create(e as FolderMetadata);
+            }
+            else if (e is DeletedMetadata)
+            {
+                return FileItem.Create(e as DeletedMetadata);
             }
 
             throw new InvalidOperationException("Unknown Metadata type");

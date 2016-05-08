@@ -166,13 +166,16 @@ namespace Sbs20.Syncotron
 
                     case CommandType.Certify:
                         this.Context.LocalFilesystem.Certify(this.matcher.FilePairs.Values);
+                        this.Context.LocalStorage.CursorWrite("Remote", this.matcher.RemoteCursor);
                         break;
 
                     case CommandType.Snapshot:
                         await this.InvokeActionsAsync();
+                        this.Context.LocalStorage.CursorWrite("Remote", this.matcher.RemoteCursor);
                         break;
 
                     case CommandType.Watcher:
+
                         throw new NotImplementedException();
                 }
             }

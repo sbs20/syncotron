@@ -19,6 +19,7 @@ namespace Sbs20.Syncotron
         public IList<string> Exclusions { get; private set; }
         public bool IgnoreCertificateErrors { get; set; }
         public HashProviderType HashProviderType { get; set; }
+        public LocalStorage LocalStorage { get; private set; }
 
         public ReplicatorContext()
         {
@@ -28,6 +29,7 @@ namespace Sbs20.Syncotron
             this.Exclusions = new List<string>();
             this.IgnoreCertificateErrors = false;
             this.HashProviderType = HashProviderType.FileDateTimeAndSize;
+            this.LocalStorage = new LocalStorage(this);
         }
 
         public string ToLocalPath(string path)

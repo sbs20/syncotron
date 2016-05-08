@@ -85,7 +85,7 @@
     <Compile Include="ConflictResolverAggressive.cs" />
     <Compile Include="IFileItemProvider.cs" />
     <Compile Include="IHashProvider.cs" />
-    <Compile Include="LocalFilesystemDb.cs" />
+    <Compile Include="LocalStorage.cs" />
     <Compile Include="LocalFilesystemService.cs" />
     <Compile Include="Matcher.cs" />
     <Compile Include="DropboxService.cs" />

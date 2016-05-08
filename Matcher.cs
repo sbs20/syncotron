@@ -11,6 +11,7 @@ namespace Sbs20.Syncotron
         public long RemoteFileCount { get; set; }
         public ReplicatorContext Context { get; private set; }
         public Dictionary<string, FileItemPair> FilePairs { get; private set; }
+        public string RemoteCursor { get; private set; }
 
         public Matcher(ReplicatorContext context)
         {
@@ -66,7 +67,7 @@ namespace Sbs20.Syncotron
         private async Task ScanRemoteAsync()
         {
             IFileItemProvider cloudService = new DropboxService(this.Context);
-            await cloudService.ForEachAsync(this.Context.RemotePath, true, false, (item) => this.Add(item));
+            this.RemoteCursor = await cloudService.ForEachAsync(this.Context.RemotePath, true, false, (item) => this.Add(item));
         }
 
         private async Task ScanLocalAsync()

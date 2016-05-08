@@ -11,14 +11,10 @@ namespace Sbs20.Syncotron
     /// in order to 
     ///   a) Use a common FileItem class
     ///   b) Log all changes to a local database in order to derives changes
-    ///   
-    /// There should only ever be ONE of these objects in play at a time in order to
-    /// avoid SQLite concurrency issues
     /// </summary>
     public class LocalFilesystemService : IFileItemProvider
     {
         private ReplicatorContext context;
-        private LocalFilesystemDb database;
 
         [Serializable]
         private class Cursor
@@ -58,7 +54,6 @@ namespace Sbs20.Syncotron
         public LocalFilesystemService(ReplicatorContext context)
         {
             this.context = context;
-            this.database = new LocalFilesystemDb(context);
         }
 
         public Task DeleteAsync(FileItem file)
@@ -85,11 +80,11 @@ namespace Sbs20.Syncotron
 
         public async Task<string> ForEachAsync(string path, bool recursive, bool deleted, Action<FileItem> action)
         {
-            this.database.ScanDelete();
+            this.context.LocalStorage.ScanDelete();
 
             Action<FileItem> internalAction = (fileItem) =>
             {
-                this.database.ScanInsert(fileItem);
+                this.context.LocalStorage.ScanInsert(fileItem);
                 action(fileItem);
             };
 
@@ -130,7 +125,7 @@ namespace Sbs20.Syncotron
             await this.ForEachAsync(cursorObj.Path, cursorObj.Recursive, cursorObj.Deleted, (x) => { });
             await Task.Run(() =>
             {
-                var changes = this.database.Changes(cursorObj.Path, cursorObj.Recursive, cursorObj.Deleted);
+                var changes = this.context.LocalStorage.Changes(cursorObj.Path, cursorObj.Recursive, cursorObj.Deleted);
                 foreach (var f in changes)
                 {
                     action(f);
@@ -153,7 +148,7 @@ namespace Sbs20.Syncotron
                 dir.Create();
             }
 
-            this.database.FileInsert(FileItem.Create(dir));
+            this.context.LocalStorage.FileInsert(FileItem.Create(dir));
         }
 
         public async Task WriteAsync(string path, Stream stream, string serverRev, DateTime lastModified)
@@ -182,7 +177,7 @@ namespace Sbs20.Syncotron
 
             localFile.Refresh();
             var item = FileItem.Create(localFile, this.context.HashProvider);
-            this.database.FileInsert(item, serverRev);
+            this.context.LocalStorage.FileInsert(item, serverRev);
         }
 
         public void Certify(IEnumerable<FileItemPair> matches)
@@ -211,11 +206,11 @@ namespace Sbs20.Syncotron
                 }
             }
 
-            this.database.UpdateFilesFromScan();
+            this.context.LocalStorage.UpdateFilesFromScan();
 
             foreach (var match in matches)
             {
-                this.database.FileUpdate(match.Local, match.Local.Hash, match.Remote.ServerRev);
+                this.context.LocalStorage.FileUpdate(match.Local, match.Local.Hash, match.Remote.ServerRev);
             }
         }
     }

@@ -5,20 +5,24 @@ using System.Linq;
 
 namespace Sbs20.Syncotron
 {
-    internal class LocalFilesystemDb
+    /// <summary>
+    /// There should only ever be ONE of these objects in play at a time in order to
+    /// avoid SQLite concurrency issues
+    /// </summary>
+    public class LocalStorage
     {
         const string connectionString = "URI=file:SqliteTest.db";
         private MonoSqliteController dbController;
         private ReplicatorContext context;
 
-        public LocalFilesystemDb(ReplicatorContext context)
+        public LocalStorage(ReplicatorContext context)
         {
             this.dbController = new MonoSqliteController(connectionString);
             this.context = context;
-            this.TableCreate();
+            this.StructureCreate();
         }
 
-        private void TableCreate()
+        private void StructureCreate()
         {
             this.dbController.ExecuteNonQuery(@"drop table if exists Scan;");
 
@@ -41,6 +45,26 @@ namespace Sbs20.Syncotron
                     LastModified varchar(19),
                     ClientModified varchar(19)
                 );");
+
+            this.dbController.ExecuteNonQuery(@"create table if not exists Cursor (
+                    Key varchar(32),
+                    Value varchar(2048)
+                );");
+        }
+
+        public string CursorRead(string key)
+        {
+            string sql = string.Format("select Value from Cursor where key={0}", DbController.ToParameter(key));
+            return this.dbController.ExecuteAsScalar(sql) as string;
+        }
+
+        public void CursorWrite(string key, string value)
+        {
+            string sql = string.Format("delete from Cursor where key={0}; insert into Cursor values ({0}, {1});", 
+                DbController.ToParameter(key),
+                DbController.ToParameter(value));
+
+            this.dbController.ExecuteNonQuery(sql);
         }
 
         public void ScanDelete()

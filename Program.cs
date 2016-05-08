@@ -19,7 +19,7 @@ namespace Sbs20.Syncotron
                 LastRun = DateTime.MinValue,
                 LocalPath = arguments["LocalPath"],
                 RemotePath = arguments["RemotePath"],
-                CommandType = CommandType.Certify,
+                CommandType = CommandType.Snapshot,
                 ReplicationDirection = ReplicationDirection.MirrorDown,
                 ProcessingMode = ProcessingMode.Parallel,
                 HashProviderType = HashProviderType.FileDateTimeAndSize,
