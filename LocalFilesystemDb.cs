@@ -49,12 +49,18 @@ namespace Sbs20.Syncotron
             this.dbController.ExecuteNonQuery(sql);
         }
 
+        public void UpdateFilesFromScan()
+        {
+            string sql = "delete from Files; insert into Files select * from Scan;";
+            this.dbController.ExecuteNonQuery(sql);
+        }
+
         public void ScanInsert(FileItem fileItem)
         {
             string sql = string.Format("insert into Scan values ({0}, {1}, {2}, {3}, {4}, {5}, {6});",
                 DbController.ToParameter(fileItem.Path),
-                DbController.ToParameter(fileItem.Rev),
-                DbController.ToParameter((string)null),
+                DbController.ToParameter(fileItem.Hash),
+                DbController.ToParameter(fileItem.ServerRev),
                 DbController.ToParameter(fileItem.Size),
                 DbController.ToParameter(fileItem.IsFolder),
                 DbController.ToParameter(fileItem.LastModified),
@@ -67,7 +73,7 @@ namespace Sbs20.Syncotron
         {
             string sql = string.Format("delete from Files where Path={0}; insert into Files values ({0}, {1}, {2}, {3}, {4}, {5}, {6});",
                 DbController.ToParameter(fileItem.Path),
-                DbController.ToParameter(fileItem.Rev),
+                DbController.ToParameter(fileItem.Hash),
                 DbController.ToParameter(serverRev),
                 DbController.ToParameter(fileItem.Size),
                 DbController.ToParameter(fileItem.IsFolder),
@@ -82,21 +88,35 @@ namespace Sbs20.Syncotron
             this.FileInsert(fileItem, string.Empty);
         }
 
+        public void FileUpdate(FileItem fileItemKey, string hash, string serverRev)
+        {
+            string sql = string.Format("update Files set LocalRev={1}, ServerRev={2} where Path={0};",
+                DbController.ToParameter(fileItemKey.Path),
+                DbController.ToParameter(fileItemKey.Hash),
+                DbController.ToParameter(serverRev));
+
+            this.dbController.ExecuteNonQuery(sql);
+        }
+
         private static FileItem ToFileItem(DataRow r)
         {
             string path = DbController.ToString(r["Path"]);
+            bool isDeleted = DbController.ToString(r["Action"]) == "Delete";
             return new FileItem
             {
                 Path = path,
-                Rev = DbController.ToString(r["LocalRev"]),
+                ServerRev = DbController.ToString(r["ServerRev"]),
+                Hash = DbController.ToString(r["LocalRev"]),
+                IsDeleted = isDeleted,
                 IsFolder = DbController.ToBoolean(r["IsFolder"]),
                 Size = (ulong)DbController.ToInt64(r["Size"]),
                 LastModified = DbController.ToDateTime(r["LastModified"])
             };
         }
 
-        public IEnumerable<FileItem> Changes()
+        public IEnumerable<FileItem> Changes(string path, bool recursive, bool deleted)
         {
+            // TODO - parameters
             string sql = @"select 'New' Action, *
     from Scan
     where Path not in (select Path from Files)
@@ -113,7 +133,7 @@ select
             return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r));
         }
 
-        public IEnumerable<FileItem> ScanRead()
+        public IEnumerable<FileItem> ScanSelect()
         {
             string sql = @"select * from Scan";
             return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r));

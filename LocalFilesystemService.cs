@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 
 namespace Sbs20.Syncotron
@@ -18,6 +20,41 @@ namespace Sbs20.Syncotron
         private ReplicatorContext context;
         private LocalFilesystemDb database;
 
+        [Serializable]
+        private class Cursor
+        {
+            public string Path { get; set; }
+            public bool Recursive { get; set; }
+            public bool Deleted { get; set; }
+
+            public override string ToString()
+            {
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    BinaryFormatter formatter = new BinaryFormatter();
+                    formatter.Serialize(memoryStream, this);
+                    return Convert.ToBase64String(memoryStream.ToArray());
+                }
+            }
+
+            public static Cursor FromString(string s)
+            {
+                try
+                {
+                    byte[] bytes = Convert.FromBase64String(s);
+                    BinaryFormatter formatter = new BinaryFormatter();
+                    using (MemoryStream memoryStream = new MemoryStream(bytes))
+                    {
+                        return formatter.Deserialize(memoryStream) as Cursor;
+                    }
+                }
+                catch
+                {
+                    throw new InvalidOperationException("Invalid cursor string");
+                }
+            }
+        }
+
         public LocalFilesystemService(ReplicatorContext context)
         {
             this.context = context;
@@ -33,7 +70,20 @@ namespace Sbs20.Syncotron
             });
         }
 
-        public async Task ForEachAsync(string path, bool recursive, bool deleted, Action<FileItem> action)
+        public string DefaultCursor
+        {
+            get
+            {
+                return new Cursor
+                {
+                    Path = this.context.LocalPath,
+                    Deleted = true,
+                    Recursive = true
+                }.ToString();
+            }
+        }
+
+        public async Task<string> ForEachAsync(string path, bool recursive, bool deleted, Action<FileItem> action)
         {
             this.database.ScanDelete();
 
@@ -65,6 +115,29 @@ namespace Sbs20.Syncotron
                     internalAction(item);
                 }
             });
+
+            return new Cursor
+            {
+                Path = path,
+                Recursive = recursive,
+                Deleted = deleted
+            }.ToString();
+        }
+
+        public async Task<string> ForEachContinueAsync(string cursor, Action<FileItem> action)
+        {
+            var cursorObj = Cursor.FromString(cursor);
+            await this.ForEachAsync(cursorObj.Path, cursorObj.Recursive, cursorObj.Deleted, (x) => { });
+            await Task.Run(() =>
+            {
+                var changes = this.database.Changes(cursorObj.Path, cursorObj.Recursive, cursorObj.Deleted);
+                foreach (var f in changes)
+                {
+                    action(f);
+                }
+            });
+
+            return cursor;
         }
 
         public Task MoveAsync(FileItem file, string desiredPath)
@@ -110,6 +183,40 @@ namespace Sbs20.Syncotron
             localFile.Refresh();
             var item = FileItem.Create(localFile, this.context.HashProvider);
             this.database.FileInsert(item, serverRev);
+        }
+
+        public void Certify(IEnumerable<FileItemPair> matches)
+        {
+            // Check that all file pairs have local and remote version
+            foreach (var filePairEntry in matches)
+            {
+                if (filePairEntry.Local == null)
+                {
+                    Logger.error(this, filePairEntry.Key + " has no local version. Cannot certify");
+                    return;
+                }
+                else if (filePairEntry.Remote == null)
+                {
+                    Logger.error(this, filePairEntry.Key + " has no remote version. Cannot certify");
+                    return;
+                }
+                else if (filePairEntry.Local.Size != filePairEntry.Remote.Size)
+                {
+                    Logger.error(this, filePairEntry.Key + " local and remote have different sizes. Cannot certify");
+                    return;
+                }
+                else if (filePairEntry.Local.ClientModified != filePairEntry.Remote.ClientModified)
+                {
+                    Logger.warn(this, filePairEntry.Key + " local and remote have different modification dates.");
+                }
+            }
+
+            this.database.UpdateFilesFromScan();
+
+            foreach (var match in matches)
+            {
+                this.database.FileUpdate(match.Local, match.Local.Hash, match.Remote.ServerRev);
+            }
         }
     }
 }

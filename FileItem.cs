@@ -9,10 +9,12 @@ namespace Sbs20.Syncotron
     {
         public FileService Source { get; set; }
         public bool IsFolder { get; set; }
+        public bool IsDeleted { get; set; }
         public string Name { get; set; }
         public string Path { get; set; }
         public string Id { get; set; }
-        public string Rev { get; set; }
+        public string ServerRev { get; set; }
+        public string Hash { get; set; }
         public ulong Size { get; set; }
         public DateTime LastModified { get; set; }
         public DateTime ClientModified { get; set; }
@@ -28,10 +30,11 @@ namespace Sbs20.Syncotron
             {
                 Source = FileService.Dropbox,
                 IsFolder = false,
+                IsDeleted = dbxfile.IsDeleted,
                 Name = dbxfile.Name,
                 Path = dbxfile.PathDisplay,
                 Id = dbxfile.Id,
-                Rev = dbxfile.Rev,
+                ServerRev = dbxfile.Rev,
                 Size = dbxfile.Size,
                 LastModified = dbxfile.ServerModified,
                 ClientModified = dbxfile.ClientModified,
@@ -45,10 +48,11 @@ namespace Sbs20.Syncotron
             {
                 Source = FileService.Dropbox,
                 IsFolder = true,
+                IsDeleted = dbxfolder.IsDeleted,
                 Name = dbxfolder.Name,
                 Path = dbxfolder.PathDisplay,
                 Id = dbxfolder.Id,
-                Rev = null,
+                ServerRev = null,
                 Size = 0,
                 LastModified = DateTime.MinValue,
                 ClientModified = DateTime.MinValue,
@@ -76,10 +80,12 @@ namespace Sbs20.Syncotron
             {
                 Source = FileService.Local,
                 IsFolder = false,
+                IsDeleted = false,
                 Name = file.Name,
                 Path = file.FullName.Replace("\\", "/"),
                 Id = string.Empty,
-                Rev = hasher.Hash(file),
+                ServerRev = string.Empty,
+                Hash = hasher.Hash(file),
                 Size = (ulong)file.Length,
                 LastModified = file.LastWriteTimeUtc,
                 ClientModified = file.LastWriteTimeUtc,
@@ -93,10 +99,12 @@ namespace Sbs20.Syncotron
             {
                 Source = FileService.Local,
                 IsFolder = true,
+                IsDeleted = false,
                 Name = dir.Name,
                 Path = dir.FullName.Replace("\\", "/"),
                 Id = string.Empty,
-                Rev = string.Empty,
+                ServerRev = string.Empty,
+                Hash = string.Empty,
                 Size = 0,
                 LastModified = dir.LastWriteTimeUtc,
                 ClientModified = dir.LastWriteTimeUtc,

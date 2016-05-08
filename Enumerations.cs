@@ -16,9 +16,10 @@
         ResolveConflict
     }
 
-    public enum ReplicationType
+    public enum CommandType
     {
         AnalysisOnly,
+        Certify,
         Snapshot,
         Watcher
     }

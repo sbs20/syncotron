@@ -71,7 +71,7 @@ namespace Sbs20.Syncotron
 
         private async Task ScanLocalAsync()
         {
-            await this.Context.LocalFileSystem.ForEachAsync(this.Context.LocalPath, true, false, (item) => this.Add(item));
+            await this.Context.LocalFilesystem.ForEachAsync(this.Context.LocalPath, true, false, (item) => this.Add(item));
         }
 
         public async Task ScanAsync()

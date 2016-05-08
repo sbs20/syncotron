@@ -38,5 +38,15 @@ namespace Sbs20.Syncotron
         {
             info(a.GetType().Name, b);
         }
+
+        public static void warn(object a, string b)
+        {
+            Write(a.GetType().Name + ": " + b);
+        }
+
+        public static void error(object a, string b)
+        {
+            Write(a.GetType().Name + ": " + b);
+        }
     }
 }

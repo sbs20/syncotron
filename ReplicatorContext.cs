@@ -13,7 +13,7 @@ namespace Sbs20.Syncotron
         public string LocalPath { get; set; }
         public string RemotePath { get; set; }
         public DateTime LastRun { get; set; }
-        public ReplicationType ReplicationType { get; set; }
+        public CommandType CommandType { get; set; }
         public ReplicationDirection ReplicationDirection { get; set; }
         public ProcessingMode ProcessingMode { get; set; }
         public IList<string> Exclusions { get; private set; }
@@ -22,7 +22,7 @@ namespace Sbs20.Syncotron
 
         public ReplicatorContext()
         {
-            this.ReplicationType = ReplicationType.AnalysisOnly;
+            this.CommandType = CommandType.AnalysisOnly;
             this.ReplicationDirection = ReplicationDirection.TwoWay;
             this.ProcessingMode = ProcessingMode.Serial;
             this.Exclusions = new List<string>();
@@ -68,7 +68,7 @@ namespace Sbs20.Syncotron
             }
         }
 
-        public LocalFilesystemService LocalFileSystem
+        public LocalFilesystemService LocalFilesystem
         {
             get
             {

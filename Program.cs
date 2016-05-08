@@ -19,7 +19,7 @@ namespace Sbs20.Syncotron
                 LastRun = DateTime.MinValue,
                 LocalPath = arguments["LocalPath"],
                 RemotePath = arguments["RemotePath"],
-                ReplicationType = ReplicationType.Snapshot,
+                CommandType = CommandType.Certify,
                 ReplicationDirection = ReplicationDirection.MirrorDown,
                 ProcessingMode = ProcessingMode.Parallel,
                 HashProviderType = HashProviderType.FileDateTimeAndSize,
@@ -47,6 +47,15 @@ namespace Sbs20.Syncotron
             {
                 Task.Delay(200).Wait();
                 outputs.Draw(replicator);
+            }
+
+            Task t = context.LocalFilesystem.ForEachContinueAsync(context.LocalFilesystem.DefaultCursor, (f) => {
+                int i = 0;
+            });
+
+            while (t.Status != TaskStatus.RanToCompletion)
+            {
+                Task.Delay(1000).Wait();
             }
 
             replicatorStart.Wait();

@@ -57,7 +57,7 @@ namespace Sbs20.Syncotron
             this.context = context;
         }
 
-        public async Task ForEachAsync(string path, bool recursive, bool deleted, Action<FileItem> action)
+        public async Task<string> ForEachAsync(string path, bool recursive, bool deleted, Action<FileItem> action)
         {
             Action<Metadata> handleEntry = (entry) =>
             {
@@ -85,6 +85,41 @@ namespace Sbs20.Syncotron
                 foreach (var entry in result.Entries)
                 {
                     handleEntry(entry);
+                }
+            }
+
+            return result.Cursor;
+        }
+
+        public async Task<string> ForEachContinueAsync(string cursor, Action<FileItem> action)
+        {
+            Action<Metadata> handleEntry = (entry) =>
+            {
+                var item = FileItem.Create(entry);
+                if (item.Path != this.context.RemotePath)
+                {
+                    action(item);
+                }
+            };
+
+            var client = Client();
+
+            while (true)
+            {
+                var result = await client.Files.ListFolderContinueAsync(new ListFolderContinueArg(cursor));
+
+                foreach (var entry in result.Entries)
+                {
+                    handleEntry(entry);
+                }
+
+                if (!result.HasMore)
+                {
+                    return result.Cursor;
+                }
+                else
+                {
+                    cursor = result.Cursor;
                 }
             }
         }
@@ -177,7 +212,7 @@ namespace Sbs20.Syncotron
 
             if (fileItem.IsFolder)
             {
-                this.context.LocalFileSystem.CreateDirectory(fileItem.Path);
+                this.context.LocalFilesystem.CreateDirectory(fileItem.Path);
             }
             else
             {
@@ -198,7 +233,7 @@ namespace Sbs20.Syncotron
 
                     using (var downloadStream = await response.GetContentAsStreamAsync())
                     {
-                        await this.context.LocalFileSystem.WriteAsync(localFile.FullName, downloadStream, remoteFile.Rev, remoteFile.ClientModified);
+                        await this.context.LocalFilesystem.WriteAsync(localFile.FullName, downloadStream, remoteFile.Rev, remoteFile.ClientModified);
                     }
 
                     Logger.verbose(this, "download():done");

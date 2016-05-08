@@ -83,7 +83,7 @@ namespace Sbs20.Syncotron
                 switch (action.Type)
                 {
                     case FileActionType.DeleteLocal:
-                        await this.Context.LocalFileSystem.DeleteAsync(action.FilePair.Local);
+                        await this.Context.LocalFilesystem.DeleteAsync(action.FilePair.Local);
                         break;
 
                     case FileActionType.Download:
@@ -159,16 +159,20 @@ namespace Sbs20.Syncotron
                 // We always need to analyse what actions to do
                 this.CreateActions();
 
-                switch (this.Context.ReplicationType)
+                switch (this.Context.CommandType)
                 {
-                    case ReplicationType.AnalysisOnly:
+                    case CommandType.AnalysisOnly:
                         break;
 
-                    case ReplicationType.Snapshot:
+                    case CommandType.Certify:
+                        this.Context.LocalFilesystem.Certify(this.matcher.FilePairs.Values);
+                        break;
+
+                    case CommandType.Snapshot:
                         await this.InvokeActionsAsync();
                         break;
 
-                    case ReplicationType.Watcher:
+                    case CommandType.Watcher:
                         throw new NotImplementedException();
                 }
             }
