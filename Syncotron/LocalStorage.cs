@@ -1,4 +1,5 @@
 ﻿using Sbs20.Data;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -46,23 +47,31 @@ namespace Sbs20.Syncotron
                     ClientModified varchar(19)
                 );");
 
-            this.dbController.ExecuteNonQuery(@"create table if not exists Cursor (
+            this.dbController.ExecuteNonQuery(@"create table if not exists Settings (
                     Key varchar(32),
                     Value varchar(2048)
                 );");
         }
 
-        public string CursorRead(string key)
+        public T SettingsRead<T>(string key)
         {
-            string sql = string.Format("select Value from Cursor where key={0}", DbController.ToParameter(key));
-            return this.dbController.ExecuteAsScalar(sql) as string;
+            string sql = string.Format("select Value from Settings where key={0}", DbController.ToParameter(key));
+            object o = this.dbController.ExecuteAsScalar(sql);
+            try
+            {
+                return (T)Convert.ChangeType(o, typeof(T));
+            }
+            catch
+            {
+                return default(T);
+            }
         }
 
-        public void CursorWrite(string key, string value)
+        public void SettingsWrite<T>(string key, T value)
         {
-            string sql = string.Format("delete from Cursor where key={0}; insert into Cursor values ({0}, {1});", 
+            string sql = string.Format("delete from Settings where key={0}; insert into Settings values ({0}, {1});", 
                 DbController.ToParameter(key),
-                DbController.ToParameter(value));
+                DbController.ToParameter(value.ToString()));
 
             this.dbController.ExecuteNonQuery(sql);
         }

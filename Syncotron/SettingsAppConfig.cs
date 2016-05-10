@@ -2,19 +2,14 @@
 
 namespace Sbs20.Syncotron
 {
-    public class Settings
+    public class SettingsAppConfig : ISettings
     {
-        public static string Dropbox_AccessToken
-        {
-            get { return ConfigurationManager.AppSettings["Dropbox_AccessToken"]; }
-        }
-
-        public static string Dropbox_ClientId
+        public string Dropbox_ClientId
         {
             get { return ConfigurationManager.AppSettings["Dropbox_ClientId"]; }
         }
 
-        public static string Dropbox_Secret
+        public string Dropbox_Secret
         {
             get { return ConfigurationManager.AppSettings["Dropbox_Secret"]; }
         }

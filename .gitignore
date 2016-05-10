@@ -281,4 +281,4 @@ $RECYCLE.BIN/
 *.lnk
 
 # Secret config files
-App.config
+Syncotron/Settings.cs

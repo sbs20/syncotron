@@ -20,6 +20,7 @@ namespace Sbs20.Syncotron
         public bool IgnoreCertificateErrors { get; set; }
         public HashProviderType HashProviderType { get; set; }
         public LocalStorage LocalStorage { get; private set; }
+        public ISettings Settings { get; private set; }
 
         public ReplicatorContext()
         {
@@ -30,6 +31,7 @@ namespace Sbs20.Syncotron
             this.IgnoreCertificateErrors = false;
             this.HashProviderType = HashProviderType.FileDateTimeAndSize;
             this.LocalStorage = new LocalStorage(this);
+            this.Settings = new Settings();
         }
 
         public string ToLocalPath(string path)

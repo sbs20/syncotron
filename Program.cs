@@ -41,6 +41,26 @@ namespace Sbs20.Syncotron
             replicator.ActionStart += outputs.ActionStartHandler;
             replicator.ActionComplete += outputs.ActionCompleteHandler;
 
+            while (!context.CloudService.IsAuthorised)
+            {
+                Uri url = context.CloudService.StartAuthorisation();
+                Console.WriteLine("You have not yet authorised syncotron for your cloud service");
+                Console.WriteLine("Please navigate here and log in");
+                Console.WriteLine(url);
+                Console.WriteLine("Then paste the result back in here");
+                string response = Console.ReadLine();
+                Task finish = context.CloudService.FinishAuthorisation(response);
+                try
+                {
+                    finish.Wait();
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex);
+                    Console.ReadLine();
+                }
+            }
+      
             Task replicatorStart = replicator.StartAsync();
 
             while (replicatorStart.Status != TaskStatus.RanToCompletion)

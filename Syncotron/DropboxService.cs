@@ -8,48 +8,66 @@ namespace Sbs20.Syncotron
 {
     public class DropboxService : ICloudService
     {
-        private static DropboxClient __client = null;
+        private DropboxClient client = null;
         private ReplicatorContext context = null;
 
-        public static Uri StartAuthorisation()
+        public Uri StartAuthorisation()
         {
-            string clientId = Settings.Dropbox_ClientId;
+            string clientId = this.context.Settings.Dropbox_ClientId;
 
             // The user should go to this URI, login and get a code... and enter that into FinishAuthorisation
             return DropboxOAuth2Helper.GetAuthorizeUri(clientId);
         }
 
-        public static async Task FinishAuthorisation(string code)
+        public async Task FinishAuthorisation(string code)
         {
-            string clientId = Settings.Dropbox_ClientId;
-            string secret = Settings.Dropbox_Secret;
+            string clientId = this.context.Settings.Dropbox_ClientId;
+            string secret = this.context.Settings.Dropbox_Secret;
             OAuth2Response oauthResponse = await DropboxOAuth2Helper.ProcessCodeFlowAsync(code, clientId, secret);
             string accessToken = oauthResponse.AccessToken;
-            // TODO
-//            Properties.Settings.Default.Dropbox_AccessToken = accessToken;
+            this.context.LocalStorage.SettingsWrite("Dropbox_AccessToken", accessToken);
         }
 
-        public static DropboxClient Client()
+        public DropboxClient Client
         {
-            if (__client == null)
+            get
             {
-                string userAgent = "Sbs20.Syncotron";
-
-                var config = new DropboxClientConfig
+                if (client == null)
                 {
-                    UserAgent = userAgent
-                };
+                    string userAgent = "Sbs20.Syncotron";
 
-                string accessToken = Settings.Dropbox_AccessToken;
-                if (string.IsNullOrEmpty(accessToken))
-                {
-                    throw new InvalidOperationException("Invalid access token");
+                    var config = new DropboxClientConfig
+                    {
+                        UserAgent = userAgent
+                    };
+
+                    string accessToken = this.context.LocalStorage.SettingsRead<string>("Dropbox_AccessToken");
+                    if (string.IsNullOrEmpty(accessToken))
+                    {
+                        throw new InvalidOperationException("Invalid access token");
+                    }
+
+                    client = new DropboxClient(accessToken, config);
                 }
 
-                __client = new DropboxClient(accessToken, config);
+                return client;
             }
+        }
 
-            return __client;
+        public bool IsAuthorised
+        {
+            get
+            {
+                try
+                {
+                    var client = this.Client;
+                    return client != null;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
         }
 
         public DropboxService(ReplicatorContext context)
@@ -68,9 +86,7 @@ namespace Sbs20.Syncotron
                 }
             };
 
-            var client = Client();
-
-            ListFolderResult result = await client.Files.ListFolderAsync(
+            ListFolderResult result = await this.Client.Files.ListFolderAsync(
                 new ListFolderArg(path, recursive, false, deleted));
 
             foreach (var entry in result.Entries)
@@ -80,7 +96,7 @@ namespace Sbs20.Syncotron
 
             while (result.HasMore)
             {
-                result = await client.Files.ListFolderContinueAsync(new ListFolderContinueArg(result.Cursor));
+                result = await this.Client.Files.ListFolderContinueAsync(new ListFolderContinueArg(result.Cursor));
 
                 foreach (var entry in result.Entries)
                 {
@@ -102,11 +118,9 @@ namespace Sbs20.Syncotron
                 }
             };
 
-            var client = Client();
-
             while (true)
             {
-                var result = await client.Files.ListFolderContinueAsync(new ListFolderContinueArg(cursor));
+                var result = await this.Client.Files.ListFolderContinueAsync(new ListFolderContinueArg(cursor));
 
                 foreach (var entry in result.Entries)
                 {
@@ -131,8 +145,7 @@ namespace Sbs20.Syncotron
 
             if (remoteFile != null)
             {
-                var client = Client();
-                await client.Files.MoveAsync(remoteFile.PathLower, desiredPath);
+                await this.Client.Files.MoveAsync(remoteFile.PathLower, desiredPath);
                 Logger.verbose(this, "move():done");
             }
         }
@@ -147,7 +160,6 @@ namespace Sbs20.Syncotron
                 // Note - this is not ensuring the name is a valid dropbox file name
                 string remoteFileName = this.context.ToRemotePath(file.Path);
 
-                var client = Client();
                 CommitInfo commitInfo = new CommitInfo(
                     remoteFileName,
                     WriteMode.Overwrite.Instance,
@@ -173,7 +185,7 @@ namespace Sbs20.Syncotron
                             {
                                 if (index == 0)
                                 {
-                                    var result = await client.Files.UploadSessionStartAsync(memoryStream);
+                                    var result = await this.Client.Files.UploadSessionStartAsync(memoryStream);
                                     sessionId = result.SessionId;
                                 }
                                 else
@@ -182,11 +194,11 @@ namespace Sbs20.Syncotron
 
                                     if (index == numChunks - 1)
                                     {
-                                        await client.Files.UploadSessionFinishAsync(cursor, commitInfo, memoryStream);
+                                        await this.Client.Files.UploadSessionFinishAsync(cursor, commitInfo, memoryStream);
                                     }
                                     else
                                     {
-                                        await client.Files.UploadSessionAppendAsync(cursor, memoryStream);
+                                        await this.Client.Files.UploadSessionAppendAsync(cursor, memoryStream);
                                     }
                                 }
                             }
@@ -198,7 +210,7 @@ namespace Sbs20.Syncotron
                     // For smaller files, just upload
                     using (Stream fileStream = localFile.OpenRead())
                     {
-                        await client.Files.UploadAsync(commitInfo, fileStream);
+                        await this.Client.Files.UploadAsync(commitInfo, fileStream);
                     }
 
                     Logger.verbose(this, "upload():done");
@@ -220,8 +232,7 @@ namespace Sbs20.Syncotron
 
                 if (remoteFile != null)
                 {
-                    var client = Client();
-                    var response = await client.Files.DownloadAsync(new DownloadArg(remoteFile.PathDisplay));
+                    var response = await this.Client.Files.DownloadAsync(new DownloadArg(remoteFile.PathDisplay));
 
                     FileInfo localFile = new FileInfo(localName);
 
@@ -259,8 +270,7 @@ namespace Sbs20.Syncotron
 
             if (remoteFile != null)
             {
-                var client = Client();
-                await client.Files.DeleteAsync(new DeleteArg(remoteFile.PathLower));
+                await this.Client.Files.DeleteAsync(new DeleteArg(remoteFile.PathLower));
                 Logger.verbose(this, "delete():done");
             }
         }
