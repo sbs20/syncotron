@@ -149,34 +149,72 @@ namespace Sbs20.Syncotron
             await Task.WhenAll(tasks);
         }
 
+        private async Task Continue()
+        {
+            bool isCertified = this.Context.LocalStorage.SettingsRead<bool>("IsCertified");
+
+            if (!isCertified)
+            {
+                Logger.warn(this, "Data is not certified. Not continuing");
+                return;
+            }
+
+            if (this.Context.ReplicationDirection == ReplicationDirection.MirrorDown)
+            {
+                string remoteCursor = this.Context.LocalStorage.SettingsRead<string>("RemoteCursor");
+
+                IList<FileItem> fileItems = new List<FileItem>();
+                remoteCursor = await this.Context.CloudService.ForEachContinueAsync(remoteCursor, (f) =>
+                {
+                    fileItems.Add(f);
+                });
+
+                foreach (var fileItem in fileItems)
+                {
+                    if (fileItem.IsDeleted)
+                    {
+                        await this.Context.LocalFilesystem.DeleteAsync(fileItem);
+                    }
+                    else
+                    {
+                        await this.Context.CloudService.DownloadAsync(fileItem);
+                    }
+                }
+
+                // If we made it here then there are no errors
+                this.Context.LocalStorage.SettingsWrite("RemoteCursor", remoteCursor);
+            }
+        }
+
         public async Task StartAsync()
         {
-            // We always have to scan all files when we start up
             try
             {
-                await this.MatchFilesAsync();
-
-                // We always need to analyse what actions to do
-                this.CreateActions();
-
                 switch (this.Context.CommandType)
                 {
                     case CommandType.AnalysisOnly:
+                        await this.MatchFilesAsync();
+                        this.CreateActions();
                         break;
 
                     case CommandType.Certify:
+                        await this.MatchFilesAsync();
+                        this.CreateActions();
                         this.Context.LocalFilesystem.Certify(this.matcher.FilePairs.Values);
                         this.Context.LocalStorage.SettingsWrite("RemoteCursor", this.matcher.RemoteCursor);
                         break;
 
                     case CommandType.Snapshot:
+                        await this.MatchFilesAsync();
+                        this.CreateActions();
                         await this.InvokeActionsAsync();
+                        this.Context.LocalStorage.SettingsWrite("IsCertified", true);
                         this.Context.LocalStorage.SettingsWrite("RemoteCursor", this.matcher.RemoteCursor);
                         break;
 
-                    case CommandType.Watcher:
-
-                        throw new NotImplementedException();
+                    case CommandType.Continue:
+                        await this.Continue();
+                        break;
                 }
             }
             catch (Exception ex)

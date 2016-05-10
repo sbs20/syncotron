@@ -19,7 +19,7 @@ namespace Sbs20.Syncotron
                 LastRun = DateTime.MinValue,
                 LocalPath = arguments["LocalPath"],
                 RemotePath = arguments["RemotePath"],
-                CommandType = CommandType.Snapshot,
+                CommandType = CommandType.Continue,
                 ReplicationDirection = ReplicationDirection.MirrorDown,
                 ProcessingMode = ProcessingMode.Parallel,
                 HashProviderType = HashProviderType.FileDateTimeAndSize,
@@ -44,23 +44,25 @@ namespace Sbs20.Syncotron
             while (!context.CloudService.IsAuthorised)
             {
                 Uri url = context.CloudService.StartAuthorisation();
-                Console.WriteLine("You have not yet authorised syncotron for your cloud service");
+                Console.WriteLine("You have not yet authorised syncotron with your cloud service");
                 Console.WriteLine("Please navigate here and log in");
+                Console.WriteLine();
                 Console.WriteLine(url);
-                Console.WriteLine("Then paste the result back in here");
+                Console.WriteLine();
+                Console.WriteLine("Then paste the result back in here and press <enter>");
                 string response = Console.ReadLine();
-                Task finish = context.CloudService.FinishAuthorisation(response);
                 try
                 {
-                    finish.Wait();
+                    context.CloudService.FinishAuthorisation(response);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Console.WriteLine(ex);
                     Console.ReadLine();
                 }
             }
-      
+
+            Console.Clear();
             Task replicatorStart = replicator.StartAsync();
 
             while (replicatorStart.Status != TaskStatus.RanToCompletion)
@@ -69,17 +71,11 @@ namespace Sbs20.Syncotron
                 outputs.Draw(replicator);
             }
 
-            Task t = context.LocalFilesystem.ForEachContinueAsync(context.LocalFilesystem.DefaultCursor, (f) => {
-                int i = 0;
-            });
-
-            while (t.Status != TaskStatus.RanToCompletion)
-            {
-                Task.Delay(1000).Wait();
-            }
-
             replicatorStart.Wait();
             outputs.Draw(replicator);
+
+            Console.WriteLine("Finished. Press <enter> to finish");
+            Console.ReadLine();
         }
     }
 }

@@ -34,14 +34,18 @@ namespace Sbs20.Syncotron
             this.Settings = new Settings();
         }
 
-        public string ToLocalPath(string path)
+        public string ToCommonPath(FileItem file)
         {
-            return this.LocalPath + path.Substring(this.RemotePath.Length);
+            return file.Source == FileService.Local ?
+                file.Path.Substring(this.LocalPath.Length) :
+                file.Path.Substring(this.RemotePath.Length);
         }
 
-        public string ToRemotePath(string path)
+        public string ToOppositePath(FileItem file)
         {
-            return this.RemotePath + path.Substring(this.LocalPath.Length);
+            return file.Source == FileService.Local ?
+                this.RemotePath + this.ToCommonPath(file) :
+                this.LocalPath + this.ToCommonPath(file);
         }
 
         public IList<string> Errors()

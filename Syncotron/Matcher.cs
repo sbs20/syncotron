@@ -21,9 +21,7 @@ namespace Sbs20.Syncotron
 
         private string Path(FileItem file)
         {
-            return file.Source == FileService.Local ?
-                file.Path.Substring(this.Context.LocalPath.Length) :
-                file.Path.Substring(this.Context.RemotePath.Length);
+            return this.Context.ToCommonPath(file);
         }
 
         private string Key(FileItem file)

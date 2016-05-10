@@ -21,7 +21,7 @@
         AnalysisOnly,
         Certify,
         Snapshot,
-        Watcher
+        Continue
     }
 
     public enum ReplicationDirection

@@ -105,10 +105,6 @@
     <Compile Include="Syncotron\SettingsAppConfig.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-    <None Include="App.sample.config">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="lib\readme.md" />
     <None Include="packages.config" />
   </ItemGroup>

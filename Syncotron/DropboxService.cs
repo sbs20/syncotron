@@ -19,12 +19,15 @@ namespace Sbs20.Syncotron
             return DropboxOAuth2Helper.GetAuthorizeUri(clientId);
         }
 
-        public async Task FinishAuthorisation(string code)
+        public void FinishAuthorisation(string code)
         {
             string clientId = this.context.Settings.Dropbox_ClientId;
             string secret = this.context.Settings.Dropbox_Secret;
-            OAuth2Response oauthResponse = await DropboxOAuth2Helper.ProcessCodeFlowAsync(code, clientId, secret);
-            string accessToken = oauthResponse.AccessToken;
+
+            // There's no point in making this async - it blocks everything anyway
+            Task<OAuth2Response> task = DropboxOAuth2Helper.ProcessCodeFlowAsync(code, clientId, secret);
+            task.Wait();
+            string accessToken = task.Result.AccessToken;
             this.context.LocalStorage.SettingsWrite("Dropbox_AccessToken", accessToken);
         }
 
@@ -158,7 +161,7 @@ namespace Sbs20.Syncotron
             if (localFile != null)
             {
                 // Note - this is not ensuring the name is a valid dropbox file name
-                string remoteFileName = this.context.ToRemotePath(file.Path);
+                string remoteFileName = this.context.ToOppositePath(file);
 
                 CommitInfo commitInfo = new CommitInfo(
                     remoteFileName,
@@ -254,7 +257,7 @@ namespace Sbs20.Syncotron
 
         public async Task DownloadAsync(FileItem file)
         {
-            string localFileName = this.context.ToLocalPath(file.Path);
+            string localFileName = this.context.ToOppositePath(file);
             await this.DownloadAsync(file, localFileName);
         }
 
