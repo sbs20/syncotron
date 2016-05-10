@@ -187,21 +187,15 @@ namespace Sbs20.Syncotron
             {
                 if (filePairEntry.Local == null)
                 {
-                    Logger.error(this, filePairEntry.Key + " has no local version. Cannot certify");
-                    this.context.LocalStorage.SettingsWrite("IsCertified", false);
-                    return;
+                    throw new InvalidOperationException(filePairEntry.Key + " has no local version. Cannot certify");
                 }
                 else if (filePairEntry.Remote == null)
                 {
-                    Logger.error(this, filePairEntry.Key + " has no remote version. Cannot certify");
-                    this.context.LocalStorage.SettingsWrite("IsCertified", false);
-                    return;
+                    throw new InvalidOperationException(filePairEntry.Key + " has no remote version. Cannot certify");
                 }
                 else if (filePairEntry.Local.Size != filePairEntry.Remote.Size)
                 {
-                    Logger.error(this, filePairEntry.Key + " local and remote have different sizes. Cannot certify");
-                    this.context.LocalStorage.SettingsWrite("IsCertified", false);
-                    return;
+                    throw new InvalidOperationException(filePairEntry.Key + " local and remote have different sizes. Cannot certify");
                 }
                 else if (filePairEntry.Local.ClientModified != filePairEntry.Remote.ClientModified)
                 {
@@ -215,8 +209,6 @@ namespace Sbs20.Syncotron
             {
                 this.context.LocalStorage.FileUpdate(match.Local, match.Local.Hash, match.Remote.ServerRev);
             }
-
-            this.context.LocalStorage.SettingsWrite("IsCertified", true);
         }
     }
 }

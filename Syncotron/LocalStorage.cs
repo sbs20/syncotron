@@ -69,9 +69,10 @@ namespace Sbs20.Syncotron
 
         public void SettingsWrite<T>(string key, T value)
         {
+            string val = value.ToString();
             string sql = string.Format("delete from Settings where key={0}; insert into Settings values ({0}, {1});", 
                 DbController.ToParameter(key),
-                DbController.ToParameter(value.ToString()));
+                DbController.ToParameter(val));
 
             this.dbController.ExecuteNonQuery(sql);
         }

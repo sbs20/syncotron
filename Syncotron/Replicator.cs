@@ -149,14 +149,13 @@ namespace Sbs20.Syncotron
             await Task.WhenAll(tasks);
         }
 
-        private async Task Continue()
+        private async Task<string> Continue()
         {
             bool isCertified = this.Context.LocalStorage.SettingsRead<bool>("IsCertified");
 
             if (!isCertified)
             {
-                Logger.warn(this, "Data is not certified. Not continuing");
-                return;
+                throw new InvalidOperationException("Data is not certified. Not continuing");
             }
 
             if (this.Context.ReplicationDirection == ReplicationDirection.MirrorDown)
@@ -181,8 +180,11 @@ namespace Sbs20.Syncotron
                     }
                 }
 
-                // If we made it here then there are no errors
-                this.Context.LocalStorage.SettingsWrite("RemoteCursor", remoteCursor);
+                return remoteCursor;
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -198,10 +200,13 @@ namespace Sbs20.Syncotron
                         break;
 
                     case CommandType.Certify:
+                        this.Context.LocalStorage.SettingsWrite("IsCertified", false);
                         await this.MatchFilesAsync();
                         this.CreateActions();
                         this.Context.LocalFilesystem.Certify(this.matcher.FilePairs.Values);
+                        this.Context.LocalStorage.SettingsWrite("IsCertified", true);
                         this.Context.LocalStorage.SettingsWrite("RemoteCursor", this.matcher.RemoteCursor);
+                        this.Context.LocalStorage.SettingsWrite("LastSync", DateTime.Now);
                         break;
 
                     case CommandType.Snapshot:
@@ -210,10 +215,13 @@ namespace Sbs20.Syncotron
                         await this.InvokeActionsAsync();
                         this.Context.LocalStorage.SettingsWrite("IsCertified", true);
                         this.Context.LocalStorage.SettingsWrite("RemoteCursor", this.matcher.RemoteCursor);
+                        this.Context.LocalStorage.SettingsWrite("LastSync", DateTime.Now);
                         break;
 
                     case CommandType.Continue:
-                        await this.Continue();
+                        string remoteCursor = await this.Continue();
+                        this.Context.LocalStorage.SettingsWrite("RemoteCursor", remoteCursor);
+                        this.Context.LocalStorage.SettingsWrite("LastSync", DateTime.Now);
                         break;
                 }
             }
