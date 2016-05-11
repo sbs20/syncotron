@@ -69,7 +69,19 @@ namespace Sbs20.Syncotron
 
         public void SettingsWrite<T>(string key, T value)
         {
-            string val = value.ToString();
+            string val = null;
+            if (value != null)
+            {
+                if (value is DateTime)
+                {
+                    val = ((DateTime)(value as object)).ToString("o");
+                }
+                else
+                {
+                    val = value.ToString();
+                }
+            }
+
             string sql = string.Format("delete from Settings where key={0}; insert into Settings values ({0}, {1});", 
                 DbController.ToParameter(key),
                 DbController.ToParameter(val));
@@ -132,10 +144,19 @@ namespace Sbs20.Syncotron
             this.dbController.ExecuteNonQuery(sql);
         }
 
+        public void FileDelete(string path)
+        {
+            string sql = string.Format("delete from Files where path={0};", DbController.ToParameter(path));
+            this.dbController.ExecuteNonQuery(sql);
+        }
+
         private static FileItem ToFileItem(DataRow r)
         {
             string path = DbController.ToString(r["Path"]);
-            bool isDeleted = DbController.ToString(r["Action"]) == "Delete";
+            bool isDeleted = false;
+            try { isDeleted = DbController.ToString(r["Action"]) == "Delete"; }
+            catch { }
+
             return new FileItem
             {
                 Path = path,
@@ -144,7 +165,8 @@ namespace Sbs20.Syncotron
                 IsDeleted = isDeleted,
                 IsFolder = DbController.ToBoolean(r["IsFolder"]),
                 Size = (ulong)DbController.ToInt64(r["Size"]),
-                LastModified = DbController.ToDateTime(r["LastModified"])
+                LastModified = DbController.ToDateTime(r["LastModified"]),
+                ClientModified = DbController.ToDateTime(r["ClientModified"])
             };
         }
 
@@ -163,7 +185,7 @@ select
 	'Change' Action, scan.*
 	from Files
         inner join Scan on Files.Path = Scan.Path
-    where Files.LocalRev != Scan.LocalRev or Files.ServerRev != Scan.ServerRev";
+    where Files.LocalRev != Scan.LocalRev";
             return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r));
         }
 
@@ -171,6 +193,15 @@ select
         {
             string sql = @"select * from Scan";
             return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r));
+        }
+
+        public FileItem FileSelect(FileItem keyFile)
+        {
+            string sql = string.Format("select * from Files where Path = {0} and LocalRev={1};",
+                DbController.ToParameter(keyFile.Path),
+                DbController.ToParameter(keyFile.Hash));
+
+            return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r)).FirstOrDefault();
         }
     }
 }

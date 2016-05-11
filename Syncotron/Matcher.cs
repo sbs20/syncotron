@@ -12,6 +12,7 @@ namespace Sbs20.Syncotron
         public ReplicatorContext Context { get; private set; }
         public Dictionary<string, FileItemPair> FilePairs { get; private set; }
         public string RemoteCursor { get; private set; }
+        public string LocalCursor { get; private set; }
 
         public Matcher(ReplicatorContext context)
         {
@@ -43,7 +44,7 @@ namespace Sbs20.Syncotron
                 {
                     filePair = new FileItemPair
                     {
-                        Path = this.Path(file)
+                        CommonPath = this.Path(file)
                     };
 
                     this.FilePairs[filePair.Key] = filePair;
@@ -65,12 +66,34 @@ namespace Sbs20.Syncotron
         private async Task ScanRemoteAsync()
         {
             IFileItemProvider cloudService = new DropboxService(this.Context);
-            this.RemoteCursor = await cloudService.ForEachAsync(this.Context.RemotePath, true, false, (item) => this.Add(item));
+            if (string.IsNullOrEmpty(this.Context.RemoteCursor))
+            {
+                this.RemoteCursor = await cloudService.ForEachAsync(this.Context.RemotePath, true, false, (item) => this.Add(item));
+            }
+            else if (this.Context.ReplicationDirection != ReplicationDirection.MirrorUp)
+            {
+                this.RemoteCursor = await cloudService.ForEachContinueAsync(this.Context.RemoteCursor, (item) => this.Add(item));
+            }
+            else
+            {
+                this.RemoteCursor = await cloudService.LatestCursor(this.Context.RemotePath, true, true);
+            }
         }
 
         private async Task ScanLocalAsync()
         {
-            await this.Context.LocalFilesystem.ForEachAsync(this.Context.LocalPath, true, false, (item) => this.Add(item));
+            if (string.IsNullOrEmpty(this.Context.LocalCursor))
+            {
+                this.LocalCursor = await this.Context.LocalFilesystem.ForEachAsync(this.Context.LocalPath, true, true, (item) => this.Add(item));
+            }
+            else if (this.Context.ReplicationDirection != ReplicationDirection.MirrorDown)
+            {
+                this.LocalCursor = await this.Context.LocalFilesystem.ForEachContinueAsync(this.Context.LocalCursor, (item) => this.Add(item));
+            }
+            else
+            {
+                this.LocalCursor = await this.Context.LocalFilesystem.LatestCursor(this.Context.LocalPath, true, true);
+            }
         }
 
         public async Task ScanAsync()

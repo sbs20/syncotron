@@ -7,6 +7,7 @@ namespace Sbs20.Syncotron
         private const double BytesPerMeg = 1 << 20;
         private int ConsoleX;
         private int ConsoleY;
+        private Exception exception;
 
         public long ActionsCompleteCount { get; set; }
         public string CurrentAction { get; set; }
@@ -52,7 +53,7 @@ namespace Sbs20.Syncotron
         {
             string type = fileAction.Type.ToString();
             string name = fileAction.PrimaryItem.Name;
-            string path = fileAction.FilePair.Path;
+            string path = fileAction.FilePair.CommonPath;
             string size = string.Format("{0:0.00}mb", fileAction.PrimaryItem.Size / BytesPerMeg);
             string error = fileAction.Exception != null ? fileAction.Exception.Message : string.Empty;
             if (path.Length + type.Length + "Action: :".Length > Console.WindowWidth)
@@ -86,6 +87,11 @@ namespace Sbs20.Syncotron
             this.ActionsCompleteCount++;
         }
 
+        public void ExceptionHandler(object sender, Exception exception)
+        {
+            this.exception = exception;
+        }
+
         private void WriteLine(string s, params object[] args)
         {
             string line = string.Format(s, args);
@@ -112,12 +118,11 @@ namespace Sbs20.Syncotron
             this.WriteLine("Duration: {0}", this.Duration);
             this.WriteLine("Download rate (mb/s): {0:0.00}", this.DownloadRate);
             this.WriteLine("Uploaded rate (mb/s): {0:0.00}", this.UploadRate);
-            this.WriteLine("Exception count: {0}", replicator.Exceptions.Count);
 
-            for (int index = 0; index < replicator.Exceptions.Count; index++)
+            if (this.exception != null)
             {
-                var exception = replicator.Exceptions[index];
-                Console.WriteLine("Exception: {0}", exception);
+                string message = replicator.Context.IsDebug ? this.exception.ToString() : this.exception.Message;
+                Console.WriteLine(message);
             }
         }
     }

@@ -75,10 +75,11 @@
     <Compile Include="ConsoleOutputs.cs" />
     <Compile Include="Data\DbController.cs" />
     <Compile Include="Data\Enumerations.cs" />
+    <Compile Include="Syncotron\ActionChooserMirrorDown.cs" />
+    <Compile Include="Syncotron\ActionChooserMirrorUp.cs" />
+    <Compile Include="Syncotron\ActionChooserTwoWay.cs" />
     <Compile Include="Syncotron\DateTimeSizeHash.cs" />
     <Compile Include="Syncotron\Enumerations.cs" />
-    <Compile Include="Syncotron\FileActionTypeChooserMirrorDown.cs" />
-    <Compile Include="Syncotron\FileActionTypeChooserMirrorUp.cs" />
     <Compile Include="Syncotron\FileActionTypeChooserTwoWay.cs" />
     <Compile Include="Syncotron\ICloudService.cs" />
     <Compile Include="Syncotron\IConflictResolver.cs" />

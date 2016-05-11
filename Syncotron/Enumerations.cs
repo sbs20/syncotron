@@ -20,8 +20,8 @@
     {
         AnalysisOnly,
         Certify,
-        Snapshot,
-        Continue
+        Autosync,
+        Reset
     }
 
     public enum ReplicationDirection

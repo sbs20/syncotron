@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Sbs20.Syncotron
 {
@@ -21,6 +22,7 @@ namespace Sbs20.Syncotron
         public HashProviderType HashProviderType { get; set; }
         public LocalStorage LocalStorage { get; private set; }
         public ISettings Settings { get; private set; }
+        public bool IsDebug { get; set; }
 
         public ReplicatorContext()
         {
@@ -41,11 +43,21 @@ namespace Sbs20.Syncotron
                 file.Path.Substring(this.RemotePath.Length);
         }
 
+        public string ToLocalPath(string commonPath)
+        {
+            return this.LocalPath + commonPath;
+        }
+
+        public string ToRemotePath(string commonPath)
+        {
+            return this.RemotePath + commonPath;
+        }
+
         public string ToOppositePath(FileItem file)
         {
             return file.Source == FileService.Local ?
-                this.RemotePath + this.ToCommonPath(file) :
-                this.LocalPath + this.ToCommonPath(file);
+                this.ToRemotePath(this.ToCommonPath(file)) :
+                this.ToLocalPath(this.ToCommonPath(file));
         }
 
         public IList<string> Errors()
@@ -100,6 +112,18 @@ namespace Sbs20.Syncotron
 
                 return this.cloudService;
             }
+        }
+
+        public string RemoteCursor
+        {
+            get { return this.LocalStorage.SettingsRead<string>("RemoteCursor"); }
+            set { this.LocalStorage.SettingsWrite("RemoteCursor", value); }
+        }
+
+        public string LocalCursor
+        {
+            get { return this.LocalStorage.SettingsRead<string>("LocalCursor"); }
+            set { this.LocalStorage.SettingsWrite("LocalCursor", value); }
         }
     }
 }

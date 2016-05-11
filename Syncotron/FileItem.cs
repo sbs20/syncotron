@@ -7,6 +7,8 @@ namespace Sbs20.Syncotron
 {
     public class FileItem
     {
+        private object obj;
+
         public FileService Source { get; set; }
         public bool IsFolder { get; set; }
         public bool IsDeleted { get; set; }
@@ -18,10 +20,24 @@ namespace Sbs20.Syncotron
         public ulong Size { get; set; }
         public DateTime LastModified { get; set; }
         public DateTime ClientModified { get; set; }
-        public object Object { get; set; }
 
         public FileItem()
         {
+        }
+
+        public object Object
+        {
+            get
+            {
+                if (this.obj == null && !string.IsNullOrEmpty(this.Path) && this.Source == FileService.Local)
+                {
+                    FileInfo file = new FileInfo(this.Path);
+                    DirectoryInfo dir = new DirectoryInfo(this.Path);
+                    this.obj = file.Exists ? (FileSystemInfo)file : dir.Exists ? dir : null;
+                }
+                return this.obj;
+            }
+            set { this.obj = value; }
         }
 
         public static FileItem Create(FileMetadata dbxFile)

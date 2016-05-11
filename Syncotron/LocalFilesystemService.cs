@@ -56,26 +56,29 @@ namespace Sbs20.Syncotron
             this.context = context;
         }
 
-        public Task DeleteAsync(FileItem file)
+        public FileSystemInfo ToFileSystemInfo(string path)
         {
-            return Task.Run(() =>
-            {
-                var localItem = file.Object as FileSystemInfo;
-                localItem.Delete();
-            });
+            DirectoryInfo dir = new DirectoryInfo(path);
+            FileInfo file = new FileInfo(path);
+            return dir.Exists ? (FileSystemInfo)dir : file;
         }
 
-        public string DefaultCursor
+        public FileItem ToFileItem(string path)
         {
-            get
+            var fsi = this.ToFileSystemInfo(path);
+            if (fsi is FileInfo)
             {
-                return new Cursor
-                {
-                    Path = this.context.LocalPath,
-                    Deleted = true,
-                    Recursive = true
-                }.ToString();
+                return FileItem.Create(fsi as FileInfo, this.context.HashProvider);
             }
+
+            return FileItem.Create(fsi as DirectoryInfo);
+        }
+
+        public Task DeleteAsync(string path)
+        {
+            var fsi = this.ToFileSystemInfo(path);
+            fsi.Delete();
+            return Task.FromResult(0);
         }
 
         public async Task<string> ForEachAsync(string path, bool recursive, bool deleted, Action<FileItem> action)
@@ -84,6 +87,14 @@ namespace Sbs20.Syncotron
 
             Action<FileItem> internalAction = (fileItem) =>
             {
+                // Do we already have a record of this exact file?
+                var existing = this.context.LocalStorage.FileSelect(fileItem);
+                if (existing != null)
+                {
+                    fileItem.ServerRev = existing.ServerRev;
+                }
+
+                // Store in scan
                 this.context.LocalStorage.ScanInsert(fileItem);
                 action(fileItem);
             };
@@ -147,8 +158,6 @@ namespace Sbs20.Syncotron
             {
                 dir.Create();
             }
-
-            this.context.LocalStorage.FileInsert(FileItem.Create(dir));
         }
 
         public async Task WriteAsync(string path, Stream stream, string serverRev, DateTime lastModified)
@@ -176,8 +185,6 @@ namespace Sbs20.Syncotron
             }
 
             localFile.Refresh();
-            var item = FileItem.Create(localFile, this.context.HashProvider);
-            this.context.LocalStorage.FileInsert(item, serverRev);
         }
 
         public void Certify(IEnumerable<FileItemPair> matches)
@@ -209,6 +216,18 @@ namespace Sbs20.Syncotron
             {
                 this.context.LocalStorage.FileUpdate(match.Local, match.Local.Hash, match.Remote.ServerRev);
             }
+        }
+
+        public Task<string> LatestCursor(string path, bool recursive, bool deleted)
+        {
+            string cursor = new Cursor
+            {
+                Path = this.context.LocalPath,
+                Deleted = true,
+                Recursive = true
+            }.ToString();
+
+            return Task.FromResult(cursor);
         }
     }
 }

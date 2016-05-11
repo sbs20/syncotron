@@ -13,14 +13,14 @@ namespace Sbs20.Syncotron
 
         public event EventHandler<FileAction> ActionStart;
         public event EventHandler<FileAction> ActionComplete;
-        public ReplicatorContext Context { get; set; }
-        public IList<Exception> Exceptions { get; private set; }
+        public event EventHandler<Exception> Exception;
+
+        public ReplicatorContext Context { get; private set; }
 
         public Replicator(ReplicatorContext context)
         {
             this.Context = context;
             this.actions = new List<FileAction>();
-            this.Exceptions = new List<Exception>();
 
             if (context.IgnoreCertificateErrors)
             {
@@ -44,6 +44,14 @@ namespace Sbs20.Syncotron
             if (this.ActionComplete != null)
             {
                 this.ActionComplete(this, action);
+            }
+        }
+
+        private void OnException(Exception exception)
+        {
+            if (this.Exception != null)
+            {
+                this.Exception(this, exception);
             }
         }
 
@@ -77,36 +85,35 @@ namespace Sbs20.Syncotron
         {
             Logger.info(this, "DoAction(" + action.Key + ")");
             this.OnActionStart(action);
+            string localPath = this.Context.ToLocalPath(action.FilePair.CommonPath);
 
-            try
+            switch (action.Type)
             {
-                switch (action.Type)
-                {
-                    case FileActionType.DeleteLocal:
-                        await this.Context.LocalFilesystem.DeleteAsync(action.FilePair.Local);
-                        break;
+                case FileActionType.DeleteLocal:
+                    await this.Context.LocalFilesystem.DeleteAsync(localPath);
+                    this.Context.LocalStorage.FileDelete(localPath);
+                    break;
 
-                    case FileActionType.Download:
-                        await this.Context.CloudService.DownloadAsync(action.FilePair.Remote);
-                        break;
+                case FileActionType.Download:
+                    await this.Context.CloudService.DownloadAsync(action.FilePair.Remote);
+                    var item = this.Context.LocalFilesystem.ToFileItem(localPath);
+                    this.Context.LocalStorage.FileInsert(item);
+                    break;
 
-                    case FileActionType.DeleteRemote:
-                        await this.Context.CloudService.DeleteAsync(action.FilePair.Remote);
-                        break;
+                case FileActionType.DeleteRemote:
+                    string remotePath = this.Context.ToRemotePath(action.FilePair.CommonPath);
+                    await this.Context.CloudService.DeleteAsync(remotePath);
+                    this.Context.LocalStorage.FileDelete(localPath);
+                    break;
 
-                    case FileActionType.Upload:
-                        await this.Context.CloudService.UploadAsync(action.FilePair.Local);
-                        break;
+                case FileActionType.Upload:
+                    await this.Context.CloudService.UploadAsync(action.FilePair.Local);
+                    this.Context.LocalStorage.FileInsert(action.FilePair.Local);
+                    break;
 
-                    case FileActionType.ResolveConflict:
-                        await this.ResolveConflict(action.FilePair);
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                action.Exception = ex;
-                this.Exceptions.Add(ex);
+                case FileActionType.ResolveConflict:
+                    await this.ResolveConflict(action.FilePair);
+                    break;
             }
 
             this.OnActionComplete(action);
@@ -114,6 +121,13 @@ namespace Sbs20.Syncotron
 
         private async Task MatchFilesAsync()
         {
+            if ((string.IsNullOrEmpty(this.Context.LocalCursor) && !string.IsNullOrEmpty(this.Context.RemoteCursor)) ||
+                (!string.IsNullOrEmpty(this.Context.LocalCursor) && string.IsNullOrEmpty(this.Context.RemoteCursor)))
+            {
+                throw new InvalidOperationException("Cursors out of sync. Run with -reset");
+            }
+
+
             this.matcher = new Matcher(this.Context);
             await this.matcher.ScanAsync();
         }
@@ -133,13 +147,22 @@ namespace Sbs20.Syncotron
         private async Task InvokeActionsAsync()
         {
             List<Task> tasks = new List<Task>();
+            bool abort = false;
             foreach (var action in this.actions)
             {
                 Task task = this.DoAction(action);
                 tasks.Add(task);
+
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                task.ContinueWith(t => tasks.Remove(t));
+                task.ContinueWith(t => tasks.Remove(t), TaskContinuationOptions.OnlyOnRanToCompletion);
+                task.ContinueWith(t => abort = true, TaskContinuationOptions.OnlyOnFaulted);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+
+                if (abort)
+                {
+                    break;
+                }
+
                 if (this.Context.ProcessingMode == ProcessingMode.Serial || tasks.Count > this.Context.MaximumConcurrency)
                 {
                     await task;
@@ -149,51 +172,18 @@ namespace Sbs20.Syncotron
             await Task.WhenAll(tasks);
         }
 
-        private async Task<string> Continue()
-        {
-            bool isCertified = this.Context.LocalStorage.SettingsRead<bool>("IsCertified");
-
-            if (!isCertified)
-            {
-                throw new InvalidOperationException("Data is not certified. Not continuing");
-            }
-
-            if (this.Context.ReplicationDirection == ReplicationDirection.MirrorDown)
-            {
-                string remoteCursor = this.Context.LocalStorage.SettingsRead<string>("RemoteCursor");
-
-                IList<FileItem> fileItems = new List<FileItem>();
-                remoteCursor = await this.Context.CloudService.ForEachContinueAsync(remoteCursor, (f) =>
-                {
-                    fileItems.Add(f);
-                });
-
-                foreach (var fileItem in fileItems)
-                {
-                    if (fileItem.IsDeleted)
-                    {
-                        await this.Context.LocalFilesystem.DeleteAsync(fileItem);
-                    }
-                    else
-                    {
-                        await this.Context.CloudService.DownloadAsync(fileItem);
-                    }
-                }
-
-                return remoteCursor;
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         public async Task StartAsync()
         {
             try
             {
                 switch (this.Context.CommandType)
                 {
+                    case CommandType.Reset:
+                        this.Context.LocalStorage.SettingsWrite("IsCertified", false);
+                        this.Context.LocalCursor = null;
+                        this.Context.RemoteCursor = null;
+                        break;
+
                     case CommandType.AnalysisOnly:
                         await this.MatchFilesAsync();
                         this.CreateActions();
@@ -201,33 +191,31 @@ namespace Sbs20.Syncotron
 
                     case CommandType.Certify:
                         this.Context.LocalStorage.SettingsWrite("IsCertified", false);
+                        this.Context.LocalCursor = null;
+                        this.Context.RemoteCursor = null;
                         await this.MatchFilesAsync();
                         this.CreateActions();
                         this.Context.LocalFilesystem.Certify(this.matcher.FilePairs.Values);
                         this.Context.LocalStorage.SettingsWrite("IsCertified", true);
-                        this.Context.LocalStorage.SettingsWrite("RemoteCursor", this.matcher.RemoteCursor);
+                        this.Context.LocalCursor = this.matcher.LocalCursor;
+                        this.Context.RemoteCursor = this.matcher.RemoteCursor;
                         this.Context.LocalStorage.SettingsWrite("LastSync", DateTime.Now);
                         break;
 
-                    case CommandType.Snapshot:
+                    case CommandType.Autosync:
                         await this.MatchFilesAsync();
                         this.CreateActions();
                         await this.InvokeActionsAsync();
                         this.Context.LocalStorage.SettingsWrite("IsCertified", true);
-                        this.Context.LocalStorage.SettingsWrite("RemoteCursor", this.matcher.RemoteCursor);
-                        this.Context.LocalStorage.SettingsWrite("LastSync", DateTime.Now);
-                        break;
-
-                    case CommandType.Continue:
-                        string remoteCursor = await this.Continue();
-                        this.Context.LocalStorage.SettingsWrite("RemoteCursor", remoteCursor);
+                        this.Context.LocalCursor = this.matcher.LocalCursor;
+                        this.Context.RemoteCursor = this.matcher.RemoteCursor;
                         this.Context.LocalStorage.SettingsWrite("LastSync", DateTime.Now);
                         break;
                 }
             }
             catch (Exception ex)
             {
-                this.Exceptions.Add(ex);
+                this.OnException(ex);
             }
         }
     }

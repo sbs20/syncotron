@@ -19,13 +19,14 @@ namespace Sbs20.Syncotron
                 LastRun = DateTime.MinValue,
                 LocalPath = arguments["LocalPath"],
                 RemotePath = arguments["RemotePath"],
-                CommandType = CommandType.Continue,
-                ReplicationDirection = ReplicationDirection.MirrorDown,
+                CommandType = CommandType.Autosync,
+                ReplicationDirection = ReplicationDirection.MirrorUp,
                 ProcessingMode = ProcessingMode.Parallel,
                 HashProviderType = HashProviderType.FileDateTimeAndSize,
                 Exclusions = { "*/.@__Thumb*" },
                 MaximumConcurrency = 3,
-                IgnoreCertificateErrors = true
+                IgnoreCertificateErrors = true,
+                IsDebug = true
             };
 
             return context;
@@ -40,6 +41,7 @@ namespace Sbs20.Syncotron
 
             replicator.ActionStart += outputs.ActionStartHandler;
             replicator.ActionComplete += outputs.ActionCompleteHandler;
+            replicator.Exception += outputs.ExceptionHandler;
 
             while (!context.CloudService.IsAuthorised)
             {
@@ -63,6 +65,7 @@ namespace Sbs20.Syncotron
             }
 
             Console.Clear();
+
             Task replicatorStart = replicator.StartAsync();
 
             while (replicatorStart.Status != TaskStatus.RanToCompletion)

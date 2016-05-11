@@ -158,66 +158,71 @@ namespace Sbs20.Syncotron
             Logger.info(this, "upload():Start");
             FileInfo localFile = (FileInfo)file.Object;
 
-            if (localFile != null)
+            if (localFile == null)
             {
-                // Note - this is not ensuring the name is a valid dropbox file name
-                string remoteFileName = this.context.ToOppositePath(file);
+                throw new InvalidOperationException("Cannot upload null file");
+            }
 
-                CommitInfo commitInfo = new CommitInfo(
-                    remoteFileName,
-                    WriteMode.Overwrite.Instance,
-                    false,
-                    file.LastModified);
+            // Note - this is not ensuring the name is a valid dropbox file name
+            string remoteFileName = this.context.ToOppositePath(file);
 
-                if (file.Size > 1 << 20)
+            CommitInfo commitInfo = new CommitInfo(
+                remoteFileName,
+                WriteMode.Overwrite.Instance,
+                false,
+                file.LastModified);
+
+            // One meg
+            if (file.Size > 1 << 20)
+            {
+                // Use chunked upload for larger files
+                using (Stream stream = localFile.OpenRead())
                 {
-                    // Use chunked upload for larger files
-                    using (Stream stream = localFile.OpenRead())
+                    int chunkSize = 1024 * 128;
+                    int numChunks = (int)Math.Ceiling((double)file.Size / chunkSize);
+
+                    byte[] buffer = new byte[chunkSize];
+                    string sessionId = null;
+
+                    for (var index = 0; index < numChunks; index++)
                     {
-                        int chunkSize = 1024 * 128;
-                        int numChunks = (int)Math.Ceiling((double)file.Size / chunkSize);
+                        var read = await stream.ReadAsync(buffer, 0, chunkSize);
 
-                        byte[] buffer = new byte[chunkSize];
-                        string sessionId = null;
-
-                        for (var index = 0; index < numChunks; index++)
+                        using (MemoryStream memoryStream = new MemoryStream(buffer, 0, read))
                         {
-                            var read = await stream.ReadAsync(buffer, 0, chunkSize);
-
-                            using (MemoryStream memoryStream = new MemoryStream(buffer, 0, read))
+                            if (index == 0)
                             {
-                                if (index == 0)
+                                var result = await this.Client.Files.UploadSessionStartAsync(memoryStream);
+                                sessionId = result.SessionId;
+                            }
+                            else
+                            {
+                                UploadSessionCursor cursor = new UploadSessionCursor(sessionId, (ulong)(chunkSize * index));
+
+                                if (index == numChunks - 1)
                                 {
-                                    var result = await this.Client.Files.UploadSessionStartAsync(memoryStream);
-                                    sessionId = result.SessionId;
+                                    var result = await this.Client.Files.UploadSessionFinishAsync(cursor, commitInfo, memoryStream);
+                                    file.ServerRev = result.Rev;
                                 }
                                 else
                                 {
-                                    UploadSessionCursor cursor = new UploadSessionCursor(sessionId, (ulong)(chunkSize * index));
-
-                                    if (index == numChunks - 1)
-                                    {
-                                        await this.Client.Files.UploadSessionFinishAsync(cursor, commitInfo, memoryStream);
-                                    }
-                                    else
-                                    {
-                                        await this.Client.Files.UploadSessionAppendAsync(cursor, memoryStream);
-                                    }
+                                    await this.Client.Files.UploadSessionAppendAsync(cursor, memoryStream);
                                 }
                             }
                         }
                     }
                 }
-                else
+            }
+            else
+            {
+                // For smaller files, just upload
+                using (Stream fileStream = localFile.OpenRead())
                 {
-                    // For smaller files, just upload
-                    using (Stream fileStream = localFile.OpenRead())
-                    {
-                        await this.Client.Files.UploadAsync(commitInfo, fileStream);
-                    }
-
-                    Logger.verbose(this, "upload():done");
+                    var result = await this.Client.Files.UploadAsync(commitInfo, fileStream);
+                    file.ServerRev = result.Rev;
                 }
+
+                Logger.verbose(this, "upload():done");
             }
         }
 
@@ -227,7 +232,8 @@ namespace Sbs20.Syncotron
 
             if (fileItem.IsFolder)
             {
-                this.context.LocalFilesystem.CreateDirectory(fileItem.Path);
+                this.context.LocalFilesystem.CreateDirectory(localName);
+                this.context.LocalStorage.FileInsert(FileItem.Create(new DirectoryInfo(localName)));
             }
             else
             {
@@ -261,21 +267,31 @@ namespace Sbs20.Syncotron
             await this.DownloadAsync(file, localFileName);
         }
 
-        public async Task DeleteAsync(FileItem file)
+        public async Task DeleteAsync(string path)
         {
-            if (file.IsFolder)
+            if (string.IsNullOrEmpty(path))
             {
-                throw new InvalidOperationException("Cannot delete a folder");
+                throw new InvalidOperationException("Path is empty.");
             }
 
-            Logger.info(this, "delete():Start");
-            FileMetadata remoteFile = (FileMetadata)file.Object;
-
-            if (remoteFile != null)
+            try
             {
-                await this.Client.Files.DeleteAsync(new DeleteArg(remoteFile.PathLower));
+                Logger.info(this, "delete():Start");
+                await this.Client.Files.DeleteAsync(new DeleteArg(path));
                 Logger.verbose(this, "delete():done");
             }
+            catch
+            {
+                Logger.info(this, "delete(" + path + "):fail");
+            }
+        }
+
+        public async Task<string> LatestCursor(string path, bool recursive, bool deleted)
+        {
+            var result = await this.Client.Files.ListFolderGetLatestCursorAsync(new ListFolderArg(
+                path, recursive, false, deleted));
+
+            return result.Cursor;
         }
     }
 }

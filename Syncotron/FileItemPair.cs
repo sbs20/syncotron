@@ -2,7 +2,7 @@
 {
     public class FileItemPair
     {
-        public string Path { get; set; }
+        public string CommonPath { get; set; }
         public FileItem Local { get; set; }
         public FileItem Remote { get; set; }
 
@@ -12,7 +12,7 @@
 
         public string Key
         {
-            get { return this.Path.ToLowerInvariant(); }
+            get { return this.CommonPath.ToLowerInvariant(); }
         }
 
         private bool IsSameSize

@@ -17,7 +17,7 @@ namespace Sbs20.Syncotron
             {
                 if (pair.Local.IsFolder)
                 {
-                    Logger.debug(this, "Choose:" + pair.Path + ":None");
+                    Logger.debug(this, "Choose:" + pair.CommonPath + ":None");
                     return FileActionType.None;
                 }
                 else if (pair.Local.LastModified <= lastSync)
@@ -25,18 +25,18 @@ namespace Sbs20.Syncotron
                     // Local file unchanged
                     if (pair.Remote == null)
                     {
-                        Logger.debug(this, "Choose:" + pair.Path + ":DeleteLocal");
+                        Logger.debug(this, "Choose:" + pair.CommonPath + ":DeleteLocal");
                         return FileActionType.DeleteLocal;
                     }
                     else if (pair.Remote.LastModified > lastSync)
                     {
-                        Logger.debug(this, "Choose:" + pair.Path + ":Download");
+                        Logger.debug(this, "Choose:" + pair.CommonPath + ":Download");
                         return FileActionType.Download;
                     }
                     else
                     {
                         // Remote file unchanged
-                        Logger.debug(this, "Choose:" + pair.Path + ":None");
+                        Logger.debug(this, "Choose:" + pair.CommonPath + ":None");
                         return FileActionType.None;
                     }
                 }
@@ -45,23 +45,23 @@ namespace Sbs20.Syncotron
                     // Local file changed
                     if (pair.Remote == null)
                     {
-                        Logger.debug(this, "Choose:" + pair.Path + ":Upload");
+                        Logger.debug(this, "Choose:" + pair.CommonPath + ":Upload");
                         return FileActionType.Upload;
                     }
                     else if (pair.Remote.LastModified <= lastSync)
                     {
-                        Logger.debug(this, "Choose:" + pair.Path + ":Upload");
+                        Logger.debug(this, "Choose:" + pair.CommonPath + ":Upload");
                         return FileActionType.Upload;
                     }
                     else if (pair.Remote.LastModified > lastSync)
                     {
                         if (pair.IsSimilarEnough)
                         {
-                            Logger.debug(this, "Choose:" + pair.Path + ":None");
+                            Logger.debug(this, "Choose:" + pair.CommonPath + ":None");
                             return FileActionType.None;
                         }
 
-                        Logger.debug(this, "Choose:" + pair.Path + ":ResolveConflict");
+                        Logger.debug(this, "Choose:" + pair.CommonPath + ":ResolveConflict");
                         return FileActionType.ResolveConflict;
                     }
                 }
@@ -70,23 +70,23 @@ namespace Sbs20.Syncotron
             {
                 if (pair.Remote.IsFolder)
                 {
-                    Logger.debug(this, "Choose:" + pair.Path + ":Download");
+                    Logger.debug(this, "Choose:" + pair.CommonPath + ":Download");
                     return FileActionType.Download;
                 }
                 // If the remote file hasn't been touched...
                 else if (pair.Remote.LastModified <= lastSync)
                 {
-                    Logger.debug(this, "Choose:" + pair.Path + ":DeleteRemote");
+                    Logger.debug(this, "Choose:" + pair.CommonPath + ":DeleteRemote");
                     return FileActionType.DeleteRemote;
                 }
                 else
                 {
-                    Logger.debug(this, "Choose:" + pair.Path + ":Download");
+                    Logger.debug(this, "Choose:" + pair.CommonPath + ":Download");
                     return FileActionType.Download;
                 }
             }
 
-            Logger.debug(this, "Choose:" + pair.Path + ":None");
+            Logger.debug(this, "Choose:" + pair.CommonPath + ":None");
             return FileActionType.None;
         }
     }

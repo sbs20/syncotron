@@ -25,12 +25,15 @@ namespace Sbs20.Syncotron
                 switch (this.Type)
                 {
                     case FileActionType.DeleteLocal:
+                    case FileActionType.DeleteRemote:
+                        // This could be either depending on whether we've scanned or cursored
+                        return this.FilePair.Local ?? this.FilePair.Remote;
+
                     case FileActionType.Upload:
                     case FileActionType.None:
                     case FileActionType.ResolveConflict:
                         return this.FilePair.Local;
 
-                    case FileActionType.DeleteRemote:
                     case FileActionType.Download:
                         return this.FilePair.Remote;
 
@@ -53,10 +56,10 @@ namespace Sbs20.Syncotron
                     return new FileActionTypeChooserTwoWay(context.LastRun);
 
                 case ReplicationDirection.MirrorDown:
-                    return new FileActionTypeChooserMirrorDown();
+                    return new ActionChooserMirrorDown();
 
                 case ReplicationDirection.MirrorUp:
-                    return new FileActionTypeChooserMirrorUp();
+                    return new ActionChooserMirrorUp();
 
                 default:
                     throw new NotImplementedException();

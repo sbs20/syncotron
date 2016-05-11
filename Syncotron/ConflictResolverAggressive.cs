@@ -11,7 +11,7 @@ namespace Sbs20.Syncotron
         public async Task ResolveAsync(FileItemPair filePair)
         {
             // We have two "new" versions of a file. We have to take a brute force approach
-            Logger.info(this, "resolveConflict(" + filePair.Path + ")");
+            Logger.info(this, "resolveConflict(" + filePair.CommonPath + ")");
 
             await Task.Delay(1);
             // We're going to download an alternate version : <filename>.conflict
