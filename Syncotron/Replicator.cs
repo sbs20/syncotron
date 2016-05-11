@@ -79,26 +79,25 @@ namespace Sbs20.Syncotron
         {
             Logger.info(this, "DoAction(" + action.Key + ")");
             this.OnActionStart(action);
-            string localPath = this.Context.ToLocalPath(action.FilePair.CommonPath);
+            var pair = action.FilePair;
 
             switch (action.Type)
             {
                 case SyncActionType.DeleteLocal:
-                    await this.Context.LocalFilesystem.DeleteAsync(localPath);
-                    this.Context.LocalStorage.FileDelete(localPath);
+                    await this.Context.LocalFilesystem.DeleteAsync(pair.LocalPath);
+                    this.Context.LocalStorage.FileDelete(pair.LocalPath);
                     break;
 
                 case SyncActionType.Download:
                     await this.Context.CloudService.DownloadAsync(action.FilePair.Remote);
-                    var item = this.Context.LocalFilesystem.ToFileItem(localPath);
+                    var item = this.Context.LocalFilesystem.ToFileItem(pair.LocalPath);
                     item.ServerRev = action.FilePair.Remote.ServerRev;
                     this.Context.LocalStorage.IndexWrite(item);
                     break;
 
                 case SyncActionType.DeleteRemote:
-                    string remotePath = this.Context.ToRemotePath(action.FilePair.CommonPath);
-                    await this.Context.CloudService.DeleteAsync(remotePath);
-                    this.Context.LocalStorage.FileDelete(localPath);
+                    await this.Context.CloudService.DeleteAsync(pair.RemotePath);
+                    this.Context.LocalStorage.FileDelete(pair.LocalPath);
                     break;
 
                 case SyncActionType.Upload:

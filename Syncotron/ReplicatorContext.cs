@@ -46,26 +46,28 @@ namespace Sbs20.Syncotron
 
         public string ToCommonPath(FileItem file)
         {
-            return file.Source == FileService.Local ?
+            string path = file.Source == FileService.Local ?
                 file.Path.Substring(this.LocalPath.Length) :
                 file.Path.Substring(this.RemotePath.Length);
+
+            return AsUnixPath(path);
         }
 
-        public string ToLocalPath(string commonPath)
+        public string ToLocalPath(FileItem file)
         {
-            return AsUnixPath(this.LocalPath + commonPath);
+            return AsUnixPath(this.LocalPath + this.ToCommonPath(file));
         }
 
-        public string ToRemotePath(string commonPath)
+        public string ToRemotePath(FileItem file)
         {
-            return AsUnixPath(this.RemotePath + commonPath);
+            return AsUnixPath(this.RemotePath + this.ToCommonPath(file));
         }
 
         public string ToOppositePath(FileItem file)
         {
             return file.Source == FileService.Local ?
-                this.ToRemotePath(this.ToCommonPath(file)) :
-                this.ToLocalPath(this.ToCommonPath(file));
+                this.ToRemotePath(file) :
+                this.ToLocalPath(file);
         }
 
         public IHashProvider HashProvider

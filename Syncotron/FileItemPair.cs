@@ -3,6 +3,9 @@
     public class FileItemPair
     {
         public string CommonPath { get; set; }
+        public string LocalPath { get; set; }
+        public string RemotePath { get; set; }
+
         public FileItem Local { get; set; }
         public FileItem Remote { get; set; }
 

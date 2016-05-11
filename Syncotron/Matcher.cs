@@ -20,14 +20,9 @@ namespace Sbs20.Syncotron
             this.FilePairs = new Dictionary<string, FileItemPair>();
         }
 
-        private string ToCommonPath(FileItem file)
-        {
-            return this.Context.ToCommonPath(file);
-        }
-
         private string Key(FileItem file)
         {
-            return ToCommonPath(file).ToLowerInvariant();
+            return this.Context.ToCommonPath(file).ToLowerInvariant();
         }
 
         private void Add(FileItem file)
@@ -44,7 +39,9 @@ namespace Sbs20.Syncotron
                 {
                     filePair = new FileItemPair
                     {
-                        CommonPath = this.ToCommonPath(file)
+                        CommonPath = this.Context.ToCommonPath(file),
+                        LocalPath = this.Context.ToLocalPath(file),
+                        RemotePath = this.Context.ToRemotePath(file)
                     };
 
                     this.FilePairs[filePair.Key] = filePair;
