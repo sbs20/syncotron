@@ -187,34 +187,34 @@ namespace Sbs20.Syncotron
             localFile.Refresh();
         }
 
-        public void Certify(IEnumerable<FileItemPair> matches)
+        public void Certify(IEnumerable<SyncAction> actions)
         {
             // Check that all file pairs have local and remote version
-            foreach (var filePairEntry in matches)
+            foreach (var action in actions)
             {
-                if (filePairEntry.Local == null)
+                if (action.Local == null)
                 {
-                    throw new InvalidOperationException(filePairEntry.Key + " has no local version. Cannot certify");
+                    throw new InvalidOperationException(action.Key + " has no local version. Cannot certify");
                 }
-                else if (filePairEntry.Remote == null)
+                else if (action.Remote == null)
                 {
-                    throw new InvalidOperationException(filePairEntry.Key + " has no remote version. Cannot certify");
+                    throw new InvalidOperationException(action.Key + " has no remote version. Cannot certify");
                 }
-                else if (filePairEntry.Local.Size != filePairEntry.Remote.Size)
+                else if (action.Local.Size != action.Remote.Size)
                 {
-                    throw new InvalidOperationException(filePairEntry.Key + " local and remote have different sizes. Cannot certify");
+                    throw new InvalidOperationException(action.Key + " local and remote have different sizes. Cannot certify");
                 }
-                else if (filePairEntry.Local.ClientModified != filePairEntry.Remote.ClientModified)
+                else if (action.Local.ClientModified != action.Remote.ClientModified)
                 {
-                    Logger.warn(this, filePairEntry.Key + " local and remote have different modification dates.");
+                    Logger.warn(this, action.Key + " local and remote have different modification dates.");
                 }
             }
 
             this.context.LocalStorage.UpdateIndexFromScan();
 
-            foreach (var match in matches)
+            foreach (var action in actions)
             {
-                this.context.LocalStorage.IndexUpdate(match.Local, match.Local.Hash, match.Remote.ServerRev);
+                this.context.LocalStorage.IndexUpdate(action.Local, action.Local.Hash, action.Remote.ServerRev);
             }
         }
 

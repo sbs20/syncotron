@@ -1,13 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Sbs20.Syncotron
 {
     public class SyncAction
     {
         public SyncActionType Type { get; set; }
-        public FileItemPair FilePair { get; set; }
         public Exception Exception { get; set; }
+
+        public string CommonPath { get; set; }
+        public string LocalPath { get; set; }
+        public string RemotePath { get; set; }
+
+        public FileItem Local { get; set; }
+        public FileItem Remote { get; set; }
 
         public SyncAction()
         {
@@ -15,7 +20,7 @@ namespace Sbs20.Syncotron
 
         public string Key
         {
-            get { return this.FilePair.Key; }
+            get { return this.CommonPath.ToLowerInvariant(); }
         }
 
         public FileItem PrimaryItem
@@ -28,14 +33,14 @@ namespace Sbs20.Syncotron
                     case SyncActionType.DeleteLocal:
                     case SyncActionType.DeleteRemote:
                         // This could be either depending on whether we've scanned or cursored
-                        return this.FilePair.Local ?? this.FilePair.Remote;
+                        return this.Local ?? this.Remote;
 
                     case SyncActionType.Upload:
                     case SyncActionType.None:
-                        return this.FilePair.Local;
+                        return this.Local;
 
                     case SyncActionType.Download:
-                        return this.FilePair.Remote;
+                        return this.Remote;
 
                     default:
                         throw new InvalidOperationException();
@@ -46,45 +51,6 @@ namespace Sbs20.Syncotron
         public override string ToString()
         {
             return this.Type.ToString() + ":" + this.Key;
-        }
-
-        private static bool MatchesExclusion(string key, IEnumerable<string> exclusions)
-        {
-            foreach (string exclusion in exclusions)
-            {
-                if (exclusion.StartsWith("*") && exclusion.EndsWith("*"))
-                {
-                    if (key.Contains(exclusion.Replace("*", "").ToLowerInvariant()))
-                    {
-                        return true;
-                    }
-                }
-                else if (key.StartsWith(exclusion.ToLowerInvariant()))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public static void AppendAll(Matcher matches, IList<SyncAction> actions)
-        {
-            foreach (var item in matches.FilePairs)
-            {
-                if (!MatchesExclusion(item.Key, matches.Context.Exclusions))
-                {
-                    SyncActionType type = matches.Context.SyncActionTypeChooser.Choose(item.Value);
-                    if (type != SyncActionType.None)
-                    {
-                        actions.Add(new SyncAction
-                        {
-                            Type = type,
-                            FilePair = item.Value
-                        });
-                    }
-                }
-            }
         }
     }
 }

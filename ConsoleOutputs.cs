@@ -49,22 +49,22 @@ namespace Sbs20.Syncotron
             get { return this.UploadedMeg / (double)this.Duration.TotalSeconds; }
         }
 
-        private static string ActionString(SyncAction fileAction)
+        private static string ActionString(SyncAction action)
         {
-            string type = fileAction.Type.ToString();
-            string name = fileAction.PrimaryItem.Name;
-            string path = fileAction.FilePair.CommonPath;
-            string size = string.Format("{0:0.00}mb", fileAction.PrimaryItem.Size / BytesPerMeg);
-            string error = fileAction.Exception != null ? fileAction.Exception.Message : string.Empty;
+            string type = action.Type.ToString();
+            string name = action.PrimaryItem.Name;
+            string path = action.CommonPath;
+            string size = string.Format("{0:0.00}mb", action.PrimaryItem.Size / BytesPerMeg);
+            string error = action.Exception != null ? action.Exception.Message : string.Empty;
             if (path.Length + type.Length + "Action: :".Length > Console.WindowWidth)
             {
                 int len = Console.WindowWidth - "Action: :".Length - type.Length;
                 path = "..." + path.Substring(path.Length - len);
             }
 
-            string action = string.Format("{0}:{1} ({2}) {3}", type, name, size, error);
-            action = action.PadRight(Console.WindowWidth);
-            return action;
+            string actionString = string.Format("{0}:{1} ({2}) {3}", type, name, size, error);
+            actionString = actionString.PadRight(Console.WindowWidth);
+            return actionString;
         }
 
         public void ActionStartHandler(object sender, SyncAction action)
@@ -77,11 +77,11 @@ namespace Sbs20.Syncotron
             this.LastAction = ActionString(action);
             if (action.Type == SyncActionType.Download)
             {
-                this.DownloadedBytes += action.FilePair.Remote.Size;
+                this.DownloadedBytes += action.Remote.Size;
             }
             else if (action.Type == SyncActionType.Upload)
             {
-                this.UploadedBytes += action.FilePair.Local.Size;
+                this.UploadedBytes += action.Local.Size;
             }
 
             this.ActionsCompleteCount++;

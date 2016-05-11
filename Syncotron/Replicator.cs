@@ -8,7 +8,7 @@ namespace Sbs20.Syncotron
 {
     public class Replicator
     {
-        private Matcher matcher;
+        private SyncActionListBuilder syncActionsBuilder;
         private IList<SyncAction> actions;
 
         public event EventHandler<SyncAction> ActionStart;
@@ -57,17 +57,17 @@ namespace Sbs20.Syncotron
 
         public long DistinctFileCount
         {
-            get { return this.matcher == null ? 0 : this.matcher.FilePairs.Count; }
+            get { return this.syncActionsBuilder == null ? 0 : this.syncActionsBuilder.ActionDictionary.Count; }
         }
 
         public long RemoteFileCount
         {
-            get { return this.matcher == null ? 0 : this.matcher.RemoteFileCount; }
+            get { return this.syncActionsBuilder == null ? 0 : this.syncActionsBuilder.RemoteFileCount; }
         }
 
         public long LocalFileCount
         {
-            get { return this.matcher == null ? 0 : this.matcher.LocalFileCount; }
+            get { return this.syncActionsBuilder == null ? 0 : this.syncActionsBuilder.LocalFileCount; }
         }
 
         public long ActionCount
@@ -79,30 +79,29 @@ namespace Sbs20.Syncotron
         {
             Logger.info(this, "DoAction(" + action.Key + ")");
             this.OnActionStart(action);
-            var pair = action.FilePair;
 
             switch (action.Type)
             {
                 case SyncActionType.DeleteLocal:
-                    await this.Context.LocalFilesystem.DeleteAsync(pair.LocalPath);
-                    this.Context.LocalStorage.FileDelete(pair.LocalPath);
+                    await this.Context.LocalFilesystem.DeleteAsync(action.LocalPath);
+                    this.Context.LocalStorage.FileDelete(action.LocalPath);
                     break;
 
                 case SyncActionType.Download:
-                    await this.Context.CloudService.DownloadAsync(action.FilePair.Remote);
-                    var item = this.Context.LocalFilesystem.ToFileItem(pair.LocalPath);
-                    item.ServerRev = action.FilePair.Remote.ServerRev;
+                    await this.Context.CloudService.DownloadAsync(action.Remote);
+                    var item = this.Context.LocalFilesystem.ToFileItem(action.LocalPath);
+                    item.ServerRev = action.Remote.ServerRev;
                     this.Context.LocalStorage.IndexWrite(item);
                     break;
 
                 case SyncActionType.DeleteRemote:
-                    await this.Context.CloudService.DeleteAsync(pair.RemotePath);
-                    this.Context.LocalStorage.FileDelete(pair.LocalPath);
+                    await this.Context.CloudService.DeleteAsync(action.RemotePath);
+                    this.Context.LocalStorage.FileDelete(action.LocalPath);
                     break;
 
                 case SyncActionType.Upload:
-                    await this.Context.CloudService.UploadAsync(action.FilePair.Local);
-                    this.Context.LocalStorage.IndexWrite(action.FilePair.Local);
+                    await this.Context.CloudService.UploadAsync(action.Local);
+                    this.Context.LocalStorage.IndexWrite(action.Local);
                     break;
 
                 default:
@@ -112,29 +111,19 @@ namespace Sbs20.Syncotron
             this.OnActionComplete(action);
         }
 
-        private async Task MatchFilesAsync()
+        private async Task PopulateActionsListAsync()
         {
             if ((string.IsNullOrEmpty(this.Context.LocalCursor) && !string.IsNullOrEmpty(this.Context.RemoteCursor)) ||
                 (!string.IsNullOrEmpty(this.Context.LocalCursor) && string.IsNullOrEmpty(this.Context.RemoteCursor)))
             {
-                throw new InvalidOperationException("Cursors out of sync. Run with -reset");
+                // Cursors out of sync. Auto reset. No point in forcing the user to do it
+                Logger.info(this, "Cursors out of sync. Resetting.");
+                this.Reset();
             }
 
-
-            this.matcher = new Matcher(this.Context);
-            await this.matcher.ScanAsync();
-        }
-
-        private void CreateActions()
-        {
-            if (this.matcher == null)
-            {
-                throw new InvalidOperationException("Call ScanFiles() first");
-            }
-
-            SyncAction.AppendAll(this.matcher, this.actions);
-
-            this.actions = this.actions.OrderBy(a => a.Key).ToList();
+            this.syncActionsBuilder = new SyncActionListBuilder(this.Context);
+            await this.syncActionsBuilder.BuildAsync();
+            this.actions = this.syncActionsBuilder.Actions;
         }
 
         private async Task InvokeActionsAsync()
@@ -165,6 +154,13 @@ namespace Sbs20.Syncotron
             await Task.WhenAll(tasks);
         }
 
+        private void Reset()
+        {
+            this.Context.LocalStorage.SettingsWrite("IsCertified", false);
+            this.Context.LocalCursor = null;
+            this.Context.RemoteCursor = null;
+        }
+
         public async Task StartAsync()
         {
             try
@@ -172,36 +168,31 @@ namespace Sbs20.Syncotron
                 switch (this.Context.CommandType)
                 {
                     case CommandType.Reset:
-                        this.Context.LocalStorage.SettingsWrite("IsCertified", false);
-                        this.Context.LocalCursor = null;
-                        this.Context.RemoteCursor = null;
+                        this.Reset();
                         break;
 
                     case CommandType.AnalysisOnly:
-                        await this.MatchFilesAsync();
-                        this.CreateActions();
+                        await this.PopulateActionsListAsync();
                         break;
 
                     case CommandType.Certify:
                         this.Context.LocalStorage.SettingsWrite("IsCertified", false);
                         this.Context.LocalCursor = null;
                         this.Context.RemoteCursor = null;
-                        await this.MatchFilesAsync();
-                        this.CreateActions();
-                        this.Context.LocalFilesystem.Certify(this.matcher.FilePairs.Values);
+                        await this.PopulateActionsListAsync();
+                        this.Context.LocalFilesystem.Certify(this.syncActionsBuilder.ActionDictionary.Values);
                         this.Context.LocalStorage.SettingsWrite("IsCertified", true);
-                        this.Context.LocalCursor = this.matcher.LocalCursor;
-                        this.Context.RemoteCursor = this.matcher.RemoteCursor;
+                        this.Context.LocalCursor = this.syncActionsBuilder.LocalCursor;
+                        this.Context.RemoteCursor = this.syncActionsBuilder.RemoteCursor;
                         this.Context.LocalStorage.SettingsWrite("LastSync", DateTime.Now);
                         break;
 
                     case CommandType.Autosync:
-                        await this.MatchFilesAsync();
-                        this.CreateActions();
+                        await this.PopulateActionsListAsync();
                         await this.InvokeActionsAsync();
                         this.Context.LocalStorage.SettingsWrite("IsCertified", true);
-                        this.Context.LocalCursor = this.matcher.LocalCursor;
-                        this.Context.RemoteCursor = this.matcher.RemoteCursor;
+                        this.Context.LocalCursor = this.syncActionsBuilder.LocalCursor;
+                        this.Context.RemoteCursor = this.syncActionsBuilder.RemoteCursor;
                         this.Context.LocalStorage.SettingsWrite("LastSync", DateTime.Now);
                         break;
                 }

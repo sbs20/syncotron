@@ -2,21 +2,21 @@
 {
     public class SyncActionTypeChooserMirrorDown : ISyncActionTypeChooser
     {
-        public SyncActionType Choose(FileItemPair pair)
+        public SyncActionType Choose(SyncAction action)
         {
-            if (pair.Remote == null || pair.Remote.IsDeleted)
+            if (action.Remote == null || action.Remote.IsDeleted)
             {
                 return SyncActionType.DeleteLocal;
             }
 
-            if (pair.Local == null)
+            if (action.Local == null)
             {
                 return SyncActionType.Download;
             }
 
-            if (pair.Local.IsFolder ||
-                pair.Remote.ServerRev == pair.Local.ServerRev ||
-                pair.Remote.Hash == pair.Local.Hash)
+            if (action.Local.IsFolder ||
+                action.Remote.ServerRev == action.Local.ServerRev ||
+                action.Remote.Hash == action.Local.Hash)
             {
                 return SyncActionType.None;
             }

@@ -11,34 +11,34 @@ namespace Sbs20.Syncotron
             this.context = context;
         }
 
-        public SyncActionType Choose(FileItemPair pair)
+        public SyncActionType Choose(SyncAction action)
         {
             // With two way, the only way we can get a delete is if it's in 
             // a continuation state. Otherwise it's an initial scan and 
             // everything is real and new
-            if (pair.Local != null && pair.Local.IsDeleted)
+            if (action.Local != null && action.Local.IsDeleted)
             {
                 return SyncActionType.DeleteRemote;
             }
-            else if (pair.Remote != null && pair.Remote.IsDeleted)
+            else if (action.Remote != null && action.Remote.IsDeleted)
             {
                 return SyncActionType.DeleteLocal;
             }
 
             // Simple case of upload
-            if (pair.Local != null && !pair.Local.IsFolder && pair.Remote == null)
+            if (action.Local != null && !action.Local.IsFolder && action.Remote == null)
             {
                 return SyncActionType.Upload;
             }
 
             // And download
-            if (pair.Local == null && pair.Remote != null)
+            if (action.Local == null && action.Remote != null)
             {
                 return SyncActionType.Download;
             }
 
             // To get here, both local and remote exist
-            if (pair.Local.ServerRev == pair.Remote.ServerRev)
+            if (action.Local.ServerRev == action.Remote.ServerRev)
             {
                 return SyncActionType.None;
             }
@@ -56,7 +56,7 @@ namespace Sbs20.Syncotron
                     return SyncActionType.Download;
 
                 case ConflictStrategy.LatestWin:
-                    return pair.Local.LastModified > pair.Remote.LastModified ? 
+                    return action.Local.LastModified > action.Remote.LastModified ? 
                         SyncActionType.Upload : 
                         SyncActionType.Download;
 

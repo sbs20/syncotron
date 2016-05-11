@@ -86,11 +86,10 @@
     <Compile Include="Syncotron\ISettings.cs" />
     <Compile Include="Syncotron\LocalStorage.cs" />
     <Compile Include="Syncotron\LocalFilesystemService.cs" />
-    <Compile Include="Syncotron\Matcher.cs" />
+    <Compile Include="Syncotron\SyncActionListBuilder.cs" />
     <Compile Include="Syncotron\DropboxService.cs" />
     <Compile Include="Syncotron\FileItem.cs" />
     <Compile Include="Syncotron\SyncAction.cs" />
-    <Compile Include="Syncotron\FileItemPair.cs" />
     <Compile Include="Syncotron\ISyncActionTypeChooser.cs" />
     <Compile Include="Syncotron\Logger.cs" />
     <Compile Include="Syncotron\MD5Hash.cs" />
