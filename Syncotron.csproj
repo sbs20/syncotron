@@ -80,7 +80,6 @@
     <Compile Include="Syncotron\SyncActionChooserTwoWay.cs" />
     <Compile Include="Syncotron\DateTimeSizeHash.cs" />
     <Compile Include="Syncotron\Enumerations.cs" />
-    <Compile Include="Syncotron\SyncActionChooserTwoWayByDate.cs" />
     <Compile Include="Syncotron\ICloudService.cs" />
     <Compile Include="Syncotron\IFileItemProvider.cs" />
     <Compile Include="Syncotron\IHashProvider.cs" />

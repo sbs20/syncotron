@@ -24,6 +24,7 @@ namespace Sbs20.Syncotron
             {
                 switch (this.Type)
                 {
+                    case FileActionType.KeepBoth:
                     case FileActionType.DeleteLocal:
                     case FileActionType.DeleteRemote:
                         // This could be either depending on whether we've scanned or cursored
@@ -31,7 +32,6 @@ namespace Sbs20.Syncotron
 
                     case FileActionType.Upload:
                     case FileActionType.None:
-                    case FileActionType.ResolveConflict:
                         return this.FilePair.Local;
 
                     case FileActionType.Download:

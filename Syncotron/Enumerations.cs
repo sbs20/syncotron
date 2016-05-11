@@ -13,8 +13,7 @@
         Upload,
         DeleteLocal,
         DeleteRemote,
-        KeepBoth,
-        ResolveConflict
+        KeepBoth
     }
 
     public enum CommandType
