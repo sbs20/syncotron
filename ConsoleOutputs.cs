@@ -49,7 +49,7 @@ namespace Sbs20.Syncotron
             get { return this.UploadedMeg / (double)this.Duration.TotalSeconds; }
         }
 
-        private static string ActionString(FileAction fileAction)
+        private static string ActionString(SyncAction fileAction)
         {
             string type = fileAction.Type.ToString();
             string name = fileAction.PrimaryItem.Name;
@@ -67,12 +67,12 @@ namespace Sbs20.Syncotron
             return action;
         }
 
-        public void ActionStartHandler(object sender, FileAction action)
+        public void ActionStartHandler(object sender, SyncAction action)
         {
             this.CurrentAction = ActionString(action);
         }
 
-        public void ActionCompleteHandler(object sender, FileAction action)
+        public void ActionCompleteHandler(object sender, SyncAction action)
         {
             this.LastAction = ActionString(action);
             if (action.Type == SyncActionType.Download)

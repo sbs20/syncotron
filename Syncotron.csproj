@@ -89,7 +89,7 @@
     <Compile Include="Syncotron\Matcher.cs" />
     <Compile Include="Syncotron\DropboxService.cs" />
     <Compile Include="Syncotron\FileItem.cs" />
-    <Compile Include="Syncotron\FileAction.cs" />
+    <Compile Include="Syncotron\SyncAction.cs" />
     <Compile Include="Syncotron\FileItemPair.cs" />
     <Compile Include="Syncotron\ISyncActionTypeChooser.cs" />
     <Compile Include="Syncotron\Logger.cs" />

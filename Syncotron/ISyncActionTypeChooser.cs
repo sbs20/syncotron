@@ -1,6 +1,6 @@
 ﻿namespace Sbs20.Syncotron
 {
-    interface ISyncActionTypeChooser
+    public interface ISyncActionTypeChooser
     {
         SyncActionType Choose(FileItemPair pair);
     }

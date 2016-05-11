@@ -9,10 +9,10 @@ namespace Sbs20.Syncotron
     public class Replicator
     {
         private Matcher matcher;
-        private IList<FileAction> actions;
+        private IList<SyncAction> actions;
 
-        public event EventHandler<FileAction> ActionStart;
-        public event EventHandler<FileAction> ActionComplete;
+        public event EventHandler<SyncAction> ActionStart;
+        public event EventHandler<SyncAction> ActionComplete;
         public event EventHandler<Exception> Exception;
 
         public ReplicatorContext Context { get; private set; }
@@ -20,7 +20,7 @@ namespace Sbs20.Syncotron
         public Replicator(ReplicatorContext context)
         {
             this.Context = context;
-            this.actions = new List<FileAction>();
+            this.actions = new List<SyncAction>();
 
             if (context.IgnoreCertificateErrors)
             {
@@ -31,7 +31,7 @@ namespace Sbs20.Syncotron
             }
         }
 
-        private void OnActionStart(FileAction action)
+        private void OnActionStart(SyncAction action)
         {
             if (this.ActionStart != null)
             {
@@ -39,7 +39,7 @@ namespace Sbs20.Syncotron
             }
         }
 
-        private void OnActionComplete(FileAction action)
+        private void OnActionComplete(SyncAction action)
         {
             if (this.ActionComplete != null)
             {
@@ -75,7 +75,7 @@ namespace Sbs20.Syncotron
             get { return this.actions == null ? 0 : this.actions.Count(); }
         }
 
-        private async Task DoAction(FileAction action)
+        private async Task DoAction(SyncAction action)
         {
             Logger.info(this, "DoAction(" + action.Key + ")");
             this.OnActionStart(action);
@@ -132,7 +132,7 @@ namespace Sbs20.Syncotron
                 throw new InvalidOperationException("Call ScanFiles() first");
             }
 
-            FileAction.AppendAll(this.matcher, this.actions);
+            SyncAction.AppendAll(this.matcher, this.actions);
 
             this.actions = this.actions.OrderBy(a => a.Key).ToList();
         }

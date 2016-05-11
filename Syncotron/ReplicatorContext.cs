@@ -10,6 +10,7 @@ namespace Sbs20.Syncotron
         private ICloudService cloudService;
         private IHashProvider hashProvider;
         public ISettings Settings { get; private set; }
+        public ISyncActionTypeChooser SyncActionTypeChooser { get; private set; }
 
         public int MaximumConcurrency { get; set; }
         public string LocalPath { get; set; }
@@ -27,6 +28,9 @@ namespace Sbs20.Syncotron
 
         public ReplicatorContext()
         {
+            // If building this from scratch - you will need to implement your own settings
+            this.Settings = new Settings();
+
             this.CommandType = CommandType.AnalysisOnly;
             this.ReplicationDirection = SyncDirection.TwoWay;
             this.ProcessingMode = ProcessingMode.Serial;
@@ -34,9 +38,25 @@ namespace Sbs20.Syncotron
             this.IgnoreCertificateErrors = false;
             this.HashProviderType = HashProviderType.DateTimeAndSize;
             this.LocalStorage = new LocalStorage(this);
+            this.SyncActionTypeChooser = this.CreateSyncActionTypeChooser();
+        }
 
-            // If building this from scratch - you will need to implement your own settings
-            this.Settings = new Settings();
+        private ISyncActionTypeChooser CreateSyncActionTypeChooser()
+        {
+            switch (this.ReplicationDirection)
+            {
+                case SyncDirection.TwoWay:
+                    return new SyncActionTypeChooserTwoWay(this);
+
+                case SyncDirection.MirrorDown:
+                    return new SyncActionTypeChooserMirrorDown();
+
+                case SyncDirection.MirrorUp:
+                    return new SyncActionTypeChooserMirrorUp();
+
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         private static string AsUnixPath(string path)

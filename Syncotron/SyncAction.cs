@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace Sbs20.Syncotron
 {
-    public class FileAction
+    public class SyncAction
     {
         public SyncActionType Type { get; set; }
         public FileItemPair FilePair { get; set; }
         public Exception Exception { get; set; }
 
-        public FileAction()
+        public SyncAction()
         {
         }
 
@@ -48,24 +48,6 @@ namespace Sbs20.Syncotron
             return this.Type.ToString() + ":" + this.Key;
         }
 
-        private static ISyncActionTypeChooser CreateFileActionChooser(ReplicatorContext context)
-        {
-            switch (context.ReplicationDirection)
-            {
-                case SyncDirection.TwoWay:
-                    return new SyncActionTypeChooserTwoWay(context);
-
-                case SyncDirection.MirrorDown:
-                    return new SyncActionTypeChooserMirrorDown();
-
-                case SyncDirection.MirrorUp:
-                    return new SyncActionTypeChooserMirrorUp();
-
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-
         private static bool MatchesExclusion(string key, IEnumerable<string> exclusions)
         {
             foreach (string exclusion in exclusions)
@@ -86,18 +68,16 @@ namespace Sbs20.Syncotron
             return false;
         }
 
-        public static void AppendAll(Matcher matches, IList<FileAction> actions)
+        public static void AppendAll(Matcher matches, IList<SyncAction> actions)
         {
-            ISyncActionTypeChooser chooser = CreateFileActionChooser(matches.Context);
-
             foreach (var item in matches.FilePairs)
             {
                 if (!MatchesExclusion(item.Key, matches.Context.Exclusions))
                 {
-                    SyncActionType type = chooser.Choose(item.Value);
+                    SyncActionType type = matches.Context.SyncActionTypeChooser.Choose(item.Value);
                     if (type != SyncActionType.None)
                     {
-                        actions.Add(new FileAction
+                        actions.Add(new SyncAction
                         {
                             Type = type,
                             FilePair = item.Value
