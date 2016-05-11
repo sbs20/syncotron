@@ -5,7 +5,7 @@ namespace Sbs20.Syncotron
 {
     public class FileAction
     {
-        public FileActionType Type { get; set; }
+        public SyncActionType Type { get; set; }
         public FileItemPair FilePair { get; set; }
         public Exception Exception { get; set; }
 
@@ -24,17 +24,17 @@ namespace Sbs20.Syncotron
             {
                 switch (this.Type)
                 {
-                    case FileActionType.KeepBoth:
-                    case FileActionType.DeleteLocal:
-                    case FileActionType.DeleteRemote:
+                    case SyncActionType.KeepBoth:
+                    case SyncActionType.DeleteLocal:
+                    case SyncActionType.DeleteRemote:
                         // This could be either depending on whether we've scanned or cursored
                         return this.FilePair.Local ?? this.FilePair.Remote;
 
-                    case FileActionType.Upload:
-                    case FileActionType.None:
+                    case SyncActionType.Upload:
+                    case SyncActionType.None:
                         return this.FilePair.Local;
 
-                    case FileActionType.Download:
+                    case SyncActionType.Download:
                         return this.FilePair.Remote;
 
                     default:
@@ -52,13 +52,13 @@ namespace Sbs20.Syncotron
         {
             switch (context.ReplicationDirection)
             {
-                case ReplicationDirection.TwoWay:
+                case SyncDirection.TwoWay:
                     return new SyncActionChooserTwoWay(context);
 
-                case ReplicationDirection.MirrorDown:
+                case SyncDirection.MirrorDown:
                     return new SyncActionChooserMirrorDown();
 
-                case ReplicationDirection.MirrorUp:
+                case SyncDirection.MirrorUp:
                     return new SyncActionChooserMirrorUp();
 
                 default:
@@ -94,8 +94,8 @@ namespace Sbs20.Syncotron
             {
                 if (!MatchesExclusion(item.Key, matches.Context.Exclusions))
                 {
-                    FileActionType type = chooser.Choose(item.Value);
-                    if (type != FileActionType.None)
+                    SyncActionType type = chooser.Choose(item.Value);
+                    if (type != SyncActionType.None)
                     {
                         actions.Add(new FileAction
                         {

@@ -20,14 +20,14 @@ namespace Sbs20.Syncotron
             this.FilePairs = new Dictionary<string, FileItemPair>();
         }
 
-        private string Path(FileItem file)
+        private string ToCommonPath(FileItem file)
         {
             return this.Context.ToCommonPath(file);
         }
 
         private string Key(FileItem file)
         {
-            return Path(file).ToLowerInvariant();
+            return ToCommonPath(file).ToLowerInvariant();
         }
 
         private void Add(FileItem file)
@@ -44,7 +44,7 @@ namespace Sbs20.Syncotron
                 {
                     filePair = new FileItemPair
                     {
-                        CommonPath = this.Path(file)
+                        CommonPath = this.ToCommonPath(file)
                     };
 
                     this.FilePairs[filePair.Key] = filePair;
@@ -70,7 +70,7 @@ namespace Sbs20.Syncotron
             {
                 this.RemoteCursor = await cloudService.ForEachAsync(this.Context.RemotePath, true, false, (item) => this.Add(item));
             }
-            else if (this.Context.ReplicationDirection != ReplicationDirection.MirrorUp)
+            else if (this.Context.ReplicationDirection != SyncDirection.MirrorUp)
             {
                 this.RemoteCursor = await cloudService.ForEachContinueAsync(this.Context.RemoteCursor, (item) => this.Add(item));
             }
@@ -86,7 +86,7 @@ namespace Sbs20.Syncotron
             {
                 this.LocalCursor = await this.Context.LocalFilesystem.ForEachAsync(this.Context.LocalPath, true, true, (item) => this.Add(item));
             }
-            else if (this.Context.ReplicationDirection != ReplicationDirection.MirrorDown)
+            else if (this.Context.ReplicationDirection != SyncDirection.MirrorDown)
             {
                 this.LocalCursor = await this.Context.LocalFilesystem.ForEachContinueAsync(this.Context.LocalCursor, (item) => this.Add(item));
             }

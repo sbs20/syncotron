@@ -6,7 +6,7 @@
         Dropbox
     }
 
-    public enum FileActionType
+    public enum SyncActionType
     {
         None,
         Download,
@@ -24,7 +24,7 @@
         Reset
     }
 
-    public enum ReplicationDirection
+    public enum SyncDirection
     {
         MirrorDown,
         MirrorUp,
@@ -39,7 +39,7 @@
 
     public enum HashProviderType
     {
-        FileDateTimeAndSize,
+        DateTimeAndSize,
         MD5
     }
 

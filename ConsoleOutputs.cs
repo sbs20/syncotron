@@ -75,11 +75,11 @@ namespace Sbs20.Syncotron
         public void ActionCompleteHandler(object sender, FileAction action)
         {
             this.LastAction = ActionString(action);
-            if (action.Type == FileActionType.Download)
+            if (action.Type == SyncActionType.Download)
             {
                 this.DownloadedBytes += action.FilePair.Remote.Size;
             }
-            else if (action.Type == FileActionType.Upload)
+            else if (action.Type == SyncActionType.Upload)
             {
                 this.UploadedBytes += action.FilePair.Local.Size;
             }

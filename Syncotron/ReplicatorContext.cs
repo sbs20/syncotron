@@ -9,31 +9,33 @@ namespace Sbs20.Syncotron
         private LocalFilesystemService localFilesystem;
         private ICloudService cloudService;
         private IHashProvider hashProvider;
+        public ISettings Settings { get; private set; }
 
         public int MaximumConcurrency { get; set; }
         public string LocalPath { get; set; }
         public string RemotePath { get; set; }
         public DateTime LastRun { get; set; }
         public CommandType CommandType { get; set; }
-        public ReplicationDirection ReplicationDirection { get; set; }
+        public SyncDirection ReplicationDirection { get; set; }
         public ProcessingMode ProcessingMode { get; set; }
         public IList<string> Exclusions { get; private set; }
         public bool IgnoreCertificateErrors { get; set; }
         public HashProviderType HashProviderType { get; set; }
         public LocalStorage LocalStorage { get; private set; }
-        public ISettings Settings { get; private set; }
         public bool IsDebug { get; set; }
         public ConflictStrategy ConflictStrategy { get; set; }
 
         public ReplicatorContext()
         {
             this.CommandType = CommandType.AnalysisOnly;
-            this.ReplicationDirection = ReplicationDirection.TwoWay;
+            this.ReplicationDirection = SyncDirection.TwoWay;
             this.ProcessingMode = ProcessingMode.Serial;
             this.Exclusions = new List<string>();
             this.IgnoreCertificateErrors = false;
-            this.HashProviderType = HashProviderType.FileDateTimeAndSize;
+            this.HashProviderType = HashProviderType.DateTimeAndSize;
             this.LocalStorage = new LocalStorage(this);
+
+            // If building this from scratch - you will need to implement your own settings
             this.Settings = new Settings();
         }
 
@@ -66,21 +68,13 @@ namespace Sbs20.Syncotron
                 this.ToLocalPath(this.ToCommonPath(file));
         }
 
-        public IList<string> Errors()
-        {
-            var errors = new List<string>();
-            if (string.IsNullOrEmpty(this.LocalPath)) errors.Add("LocalPath");
-            if (this.RemotePath == null) errors.Add("RemotePath");
-            return errors;
-        }
-
         public IHashProvider HashProvider
         {
             get
             {
                 if (this.hashProvider == null)
                 {
-                    if (this.HashProviderType == HashProviderType.FileDateTimeAndSize)
+                    if (this.HashProviderType == HashProviderType.DateTimeAndSize)
                     {
                         this.hashProvider = new DateTimeSizeHash();
                     }

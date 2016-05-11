@@ -2,6 +2,6 @@
 {
     interface ISyncActionChooser
     {
-        FileActionType Choose(FileItemPair pair);
+        SyncActionType Choose(FileItemPair pair);
     }
 }

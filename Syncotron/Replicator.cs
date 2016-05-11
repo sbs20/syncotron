@@ -83,25 +83,25 @@ namespace Sbs20.Syncotron
 
             switch (action.Type)
             {
-                case FileActionType.DeleteLocal:
+                case SyncActionType.DeleteLocal:
                     await this.Context.LocalFilesystem.DeleteAsync(localPath);
                     this.Context.LocalStorage.FileDelete(localPath);
                     break;
 
-                case FileActionType.Download:
+                case SyncActionType.Download:
                     await this.Context.CloudService.DownloadAsync(action.FilePair.Remote);
                     var item = this.Context.LocalFilesystem.ToFileItem(localPath);
                     item.ServerRev = action.FilePair.Remote.ServerRev;
                     this.Context.LocalStorage.IndexWrite(item);
                     break;
 
-                case FileActionType.DeleteRemote:
+                case SyncActionType.DeleteRemote:
                     string remotePath = this.Context.ToRemotePath(action.FilePair.CommonPath);
                     await this.Context.CloudService.DeleteAsync(remotePath);
                     this.Context.LocalStorage.FileDelete(localPath);
                     break;
 
-                case FileActionType.Upload:
+                case SyncActionType.Upload:
                     await this.Context.CloudService.UploadAsync(action.FilePair.Local);
                     this.Context.LocalStorage.IndexWrite(action.FilePair.Local);
                     break;
