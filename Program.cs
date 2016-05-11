@@ -20,13 +20,14 @@ namespace Sbs20.Syncotron
                 LocalPath = arguments["LocalPath"],
                 RemotePath = arguments["RemotePath"],
                 CommandType = CommandType.Autosync,
-                ReplicationDirection = ReplicationDirection.MirrorDown,
+                ReplicationDirection = ReplicationDirection.TwoWay,
                 ProcessingMode = ProcessingMode.Parallel,
                 HashProviderType = HashProviderType.FileDateTimeAndSize,
                 Exclusions = { "*/.@__Thumb*" },
                 MaximumConcurrency = 3,
                 IgnoreCertificateErrors = true,
-                IsDebug = true
+                IsDebug = true,
+                ConflictStrategy = ConflictStrategy.RemoteWin
             };
 
             return context;

@@ -23,6 +23,7 @@ namespace Sbs20.Syncotron
         public LocalStorage LocalStorage { get; private set; }
         public ISettings Settings { get; private set; }
         public bool IsDebug { get; set; }
+        public ConflictStrategy ConflictStrategy { get; set; }
 
         public ReplicatorContext()
         {

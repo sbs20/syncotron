@@ -13,6 +13,7 @@
         Upload,
         DeleteLocal,
         DeleteRemote,
+        KeepBoth,
         ResolveConflict
     }
 
@@ -41,5 +42,14 @@
     {
         FileDateTimeAndSize,
         MD5
+    }
+
+    public enum ConflictStrategy
+    {
+        None,
+        RemoteWin,
+        LocalWin,
+        LatestWin,
+        KeepBoth
     }
 }

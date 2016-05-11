@@ -2,11 +2,14 @@
 
 namespace Sbs20.Syncotron
 {
-    public class FileActionTypeChooserTwoWay : IFileActionTypeChooser
+    /// <summary>
+    /// Deprecated
+    /// </summary>
+    internal class SyncActionChooserTwoWayByDate : ISyncActionChooser
     {
         private DateTime lastSync;
 
-        public FileActionTypeChooserTwoWay(DateTime lastSync)
+        public SyncActionChooserTwoWayByDate(DateTime lastSync)
         {
             this.lastSync = lastSync;
         }

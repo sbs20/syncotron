@@ -1,27 +1,27 @@
 ﻿namespace Sbs20.Syncotron
 {
-    public class ActionChooserMirrorUp : IFileActionTypeChooser
+    public class SyncActionChooserMirrorDown : ISyncActionChooser
     {
         public FileActionType Choose(FileItemPair pair)
         {
-            if (pair.Local == null || pair.Local.IsDeleted)
+            if (pair.Remote == null || pair.Remote.IsDeleted)
             {
-                return FileActionType.DeleteRemote;
+                return FileActionType.DeleteLocal;
             }
 
-            if (pair.Remote == null)
+            if (pair.Local == null)
             {
-                return FileActionType.Upload;
+                return FileActionType.Download;
             }
 
-            if (pair.Remote.IsFolder ||
+            if (pair.Local.IsFolder ||
                 pair.Remote.ServerRev == pair.Local.ServerRev ||
                 pair.Remote.Hash == pair.Local.Hash)
             {
                 return FileActionType.None;
             }
 
-            return FileActionType.Upload;
+            return FileActionType.Download;
         }
     }
 }

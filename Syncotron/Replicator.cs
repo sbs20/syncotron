@@ -75,12 +75,6 @@ namespace Sbs20.Syncotron
             get { return this.actions == null ? 0 : this.actions.Count(); }
         }
 
-        private async Task ResolveConflict(FileItemPair pair)
-        {
-            IConflictResolver resolver = new ConflictResolverAggressive();
-            await resolver.ResolveAsync(pair);
-        }
-
         private async Task DoAction(FileAction action)
         {
             Logger.info(this, "DoAction(" + action.Key + ")");
@@ -112,9 +106,8 @@ namespace Sbs20.Syncotron
                     this.Context.LocalStorage.IndexWrite(action.FilePair.Local);
                     break;
 
-                case FileActionType.ResolveConflict:
-                    await this.ResolveConflict(action.FilePair);
-                    break;
+                default:
+                    throw new NotImplementedException();
             }
 
             this.OnActionComplete(action);
