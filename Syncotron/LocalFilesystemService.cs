@@ -88,7 +88,7 @@ namespace Sbs20.Syncotron
             Action<FileItem> internalAction = (fileItem) =>
             {
                 // Do we already have a record of this exact file?
-                var existing = this.context.LocalStorage.FileSelect(fileItem);
+                var existing = this.context.LocalStorage.IndexSelect(fileItem);
                 if (existing != null)
                 {
                     fileItem.ServerRev = existing.ServerRev;
@@ -210,11 +210,11 @@ namespace Sbs20.Syncotron
                 }
             }
 
-            this.context.LocalStorage.UpdateFilesFromScan();
+            this.context.LocalStorage.UpdateIndexFromScan();
 
             foreach (var match in matches)
             {
-                this.context.LocalStorage.FileUpdate(match.Local, match.Local.Hash, match.Remote.ServerRev);
+                this.context.LocalStorage.IndexUpdate(match.Local, match.Local.Hash, match.Remote.ServerRev);
             }
         }
 

@@ -233,7 +233,6 @@ namespace Sbs20.Syncotron
             if (fileItem.IsFolder)
             {
                 this.context.LocalFilesystem.CreateDirectory(localName);
-                this.context.LocalStorage.FileInsert(FileItem.Create(new DirectoryInfo(localName)));
             }
             else
             {

@@ -95,58 +95,9 @@ namespace Sbs20.Syncotron
             this.dbController.ExecuteNonQuery(sql);
         }
 
-        public void UpdateFilesFromScan()
+        public void UpdateIndexFromScan()
         {
             string sql = "delete from Files; insert into Files select * from Scan;";
-            this.dbController.ExecuteNonQuery(sql);
-        }
-
-        public void ScanInsert(FileItem fileItem)
-        {
-            string sql = string.Format("insert into Scan values ({0}, {1}, {2}, {3}, {4}, {5}, {6});",
-                DbController.ToParameter(fileItem.Path),
-                DbController.ToParameter(fileItem.Hash),
-                DbController.ToParameter(fileItem.ServerRev),
-                DbController.ToParameter(fileItem.Size),
-                DbController.ToParameter(fileItem.IsFolder),
-                DbController.ToParameter(fileItem.LastModified),
-                DbController.ToParameter(fileItem.ClientModified));
-
-            this.dbController.ExecuteNonQuery(sql);
-        }
-
-        public void FileInsert(FileItem fileItem, string serverRev)
-        {
-            string sql = string.Format("delete from Files where Path={0}; insert into Files values ({0}, {1}, {2}, {3}, {4}, {5}, {6});",
-                DbController.ToParameter(fileItem.Path),
-                DbController.ToParameter(fileItem.Hash),
-                DbController.ToParameter(serverRev),
-                DbController.ToParameter(fileItem.Size),
-                DbController.ToParameter(fileItem.IsFolder),
-                DbController.ToParameter(fileItem.LastModified),
-                DbController.ToParameter(fileItem.ClientModified));
-
-            this.dbController.ExecuteNonQuery(sql);
-        }
-
-        public void FileInsert(FileItem fileItem)
-        {
-            this.FileInsert(fileItem, string.Empty);
-        }
-
-        public void FileUpdate(FileItem fileItemKey, string hash, string serverRev)
-        {
-            string sql = string.Format("update Files set LocalRev={1}, ServerRev={2} where Path={0};",
-                DbController.ToParameter(fileItemKey.Path),
-                DbController.ToParameter(fileItemKey.Hash),
-                DbController.ToParameter(serverRev));
-
-            this.dbController.ExecuteNonQuery(sql);
-        }
-
-        public void FileDelete(string path)
-        {
-            string sql = string.Format("delete from Files where path={0};", DbController.ToParameter(path));
             this.dbController.ExecuteNonQuery(sql);
         }
 
@@ -168,6 +119,59 @@ namespace Sbs20.Syncotron
                 LastModified = DbController.ToDateTime(r["LastModified"]),
                 ClientModified = DbController.ToDateTime(r["ClientModified"])
             };
+        }
+
+        public void ScanInsert(FileItem fileItem)
+        {
+            string sql = string.Format("insert into Scan values ({0}, {1}, {2}, {3}, {4}, {5}, {6});",
+                DbController.ToParameter(fileItem.Path),
+                DbController.ToParameter(fileItem.Hash),
+                DbController.ToParameter(fileItem.ServerRev),
+                DbController.ToParameter(fileItem.Size),
+                DbController.ToParameter(fileItem.IsFolder),
+                DbController.ToParameter(fileItem.LastModified),
+                DbController.ToParameter(fileItem.ClientModified));
+
+            this.dbController.ExecuteNonQuery(sql);
+        }
+
+        public void IndexWrite(FileItem fileItem)
+        {
+            string sql = string.Format("delete from Files where Path={0}; insert into Files values ({0}, {1}, {2}, {3}, {4}, {5}, {6});",
+                DbController.ToParameter(fileItem.Path),
+                DbController.ToParameter(fileItem.Hash),
+                DbController.ToParameter(fileItem.ServerRev),
+                DbController.ToParameter(fileItem.Size),
+                DbController.ToParameter(fileItem.IsFolder),
+                DbController.ToParameter(fileItem.LastModified),
+                DbController.ToParameter(fileItem.ClientModified));
+
+            this.dbController.ExecuteNonQuery(sql);
+        }
+
+        public void IndexUpdate(FileItem fileItemKey, string hash, string serverRev)
+        {
+            string sql = string.Format("update Files set LocalRev={1}, ServerRev={2} where Path={0};",
+                DbController.ToParameter(fileItemKey.Path),
+                DbController.ToParameter(fileItemKey.Hash),
+                DbController.ToParameter(serverRev));
+
+            this.dbController.ExecuteNonQuery(sql);
+        }
+
+        public void FileDelete(string path)
+        {
+            string sql = string.Format("delete from Files where path={0};", DbController.ToParameter(path));
+            this.dbController.ExecuteNonQuery(sql);
+        }
+
+        public FileItem IndexSelect(FileItem keyFile)
+        {
+            string sql = string.Format("select * from Files where Path = {0} and LocalRev={1};",
+                DbController.ToParameter(keyFile.Path),
+                DbController.ToParameter(keyFile.Hash));
+
+            return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r)).FirstOrDefault();
         }
 
         public IEnumerable<FileItem> Changes(string path, bool recursive, bool deleted)
@@ -193,15 +197,6 @@ select
         {
             string sql = @"select * from Scan";
             return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r));
-        }
-
-        public FileItem FileSelect(FileItem keyFile)
-        {
-            string sql = string.Format("select * from Files where Path = {0} and LocalRev={1};",
-                DbController.ToParameter(keyFile.Path),
-                DbController.ToParameter(keyFile.Hash));
-
-            return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r)).FirstOrDefault();
         }
     }
 }

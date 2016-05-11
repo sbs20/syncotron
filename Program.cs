@@ -20,7 +20,7 @@ namespace Sbs20.Syncotron
                 LocalPath = arguments["LocalPath"],
                 RemotePath = arguments["RemotePath"],
                 CommandType = CommandType.Autosync,
-                ReplicationDirection = ReplicationDirection.MirrorUp,
+                ReplicationDirection = ReplicationDirection.MirrorDown,
                 ProcessingMode = ProcessingMode.Parallel,
                 HashProviderType = HashProviderType.FileDateTimeAndSize,
                 Exclusions = { "*/.@__Thumb*" },

@@ -97,7 +97,8 @@ namespace Sbs20.Syncotron
                 case FileActionType.Download:
                     await this.Context.CloudService.DownloadAsync(action.FilePair.Remote);
                     var item = this.Context.LocalFilesystem.ToFileItem(localPath);
-                    this.Context.LocalStorage.FileInsert(item);
+                    item.ServerRev = action.FilePair.Remote.ServerRev;
+                    this.Context.LocalStorage.IndexWrite(item);
                     break;
 
                 case FileActionType.DeleteRemote:
@@ -108,7 +109,7 @@ namespace Sbs20.Syncotron
 
                 case FileActionType.Upload:
                     await this.Context.CloudService.UploadAsync(action.FilePair.Local);
-                    this.Context.LocalStorage.FileInsert(action.FilePair.Local);
+                    this.Context.LocalStorage.IndexWrite(action.FilePair.Local);
                     break;
 
                 case FileActionType.ResolveConflict:

@@ -36,6 +36,11 @@ namespace Sbs20.Syncotron
             this.Settings = new Settings();
         }
 
+        private static string AsUnixPath(string path)
+        {
+            return path == null ? null : path.Replace("\\", "/");
+        }
+
         public string ToCommonPath(FileItem file)
         {
             return file.Source == FileService.Local ?
@@ -45,12 +50,12 @@ namespace Sbs20.Syncotron
 
         public string ToLocalPath(string commonPath)
         {
-            return this.LocalPath + commonPath;
+            return AsUnixPath(this.LocalPath + commonPath);
         }
 
         public string ToRemotePath(string commonPath)
         {
-            return this.RemotePath + commonPath;
+            return AsUnixPath(this.RemotePath + commonPath);
         }
 
         public string ToOppositePath(FileItem file)
