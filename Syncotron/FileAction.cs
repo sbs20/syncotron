@@ -48,18 +48,18 @@ namespace Sbs20.Syncotron
             return this.Type.ToString() + ":" + this.Key;
         }
 
-        private static ISyncActionChooser CreateFileActionChooser(ReplicatorContext context)
+        private static ISyncActionTypeChooser CreateFileActionChooser(ReplicatorContext context)
         {
             switch (context.ReplicationDirection)
             {
                 case SyncDirection.TwoWay:
-                    return new SyncActionChooserTwoWay(context);
+                    return new SyncActionTypeChooserTwoWay(context);
 
                 case SyncDirection.MirrorDown:
-                    return new SyncActionChooserMirrorDown();
+                    return new SyncActionTypeChooserMirrorDown();
 
                 case SyncDirection.MirrorUp:
-                    return new SyncActionChooserMirrorUp();
+                    return new SyncActionTypeChooserMirrorUp();
 
                 default:
                     throw new NotImplementedException();
@@ -88,7 +88,7 @@ namespace Sbs20.Syncotron
 
         public static void AppendAll(Matcher matches, IList<FileAction> actions)
         {
-            ISyncActionChooser chooser = CreateFileActionChooser(matches.Context);
+            ISyncActionTypeChooser chooser = CreateFileActionChooser(matches.Context);
 
             foreach (var item in matches.FilePairs)
             {

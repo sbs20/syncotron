@@ -2,11 +2,11 @@
 
 namespace Sbs20.Syncotron
 {
-    public class SyncActionChooserTwoWay : ISyncActionChooser
+    public class SyncActionTypeChooserTwoWay : ISyncActionTypeChooser
     {
         ReplicatorContext context;
 
-        public SyncActionChooserTwoWay(ReplicatorContext context)
+        public SyncActionTypeChooserTwoWay(ReplicatorContext context)
         {
             this.context = context;
         }
