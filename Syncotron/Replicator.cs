@@ -75,7 +75,7 @@ namespace Sbs20.Syncotron
             get { return this.actions == null ? 0 : this.actions.Count(); }
         }
 
-        private async Task DoAction(SyncAction action)
+        private async Task DoActionAsync(SyncAction action)
         {
             Logger.info(this, "DoAction(" + action.Key + ")");
             this.OnActionStart(action);
@@ -126,13 +126,13 @@ namespace Sbs20.Syncotron
             this.actions = this.syncActionsBuilder.Actions;
         }
 
-        private async Task InvokeActionsAsync()
+        private async Task ProcessActionsAsync()
         {
             List<Task> tasks = new List<Task>();
             bool abort = false;
             foreach (var action in this.actions)
             {
-                Task task = this.DoAction(action);
+                Task task = this.DoActionAsync(action);
                 tasks.Add(task);
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -189,7 +189,7 @@ namespace Sbs20.Syncotron
 
                     case CommandType.Autosync:
                         await this.PopulateActionsListAsync();
-                        await this.InvokeActionsAsync();
+                        await this.ProcessActionsAsync();
                         this.Context.LocalStorage.SettingsWrite("IsCertified", true);
                         this.Context.LocalCursor = this.syncActionsBuilder.LocalCursor;
                         this.Context.RemoteCursor = this.syncActionsBuilder.RemoteCursor;
