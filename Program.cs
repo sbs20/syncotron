@@ -7,8 +7,6 @@ namespace Sbs20
 {
     class Program
     {
-        // http://logicalgenetics.com/raspberry-pi-and-mono-hello-world/
-        // http://www.mono-project.com/docs/getting-started/mono-basics/
         private static ReplicatorContext ToReplicatorContext(string[] args)
         {
             var arguments = ConsoleHelper.ReadArguments(args);
@@ -25,7 +23,7 @@ namespace Sbs20
                 HashProviderType = HashProviderType.DateTimeAndSize,
                 Exclusions = { "*/.@__Thumb*" },
                 IgnoreCertificateErrors = true,
-                IsDebug = true,
+                IsDebug = false,
                 ConflictStrategy = ConflictStrategy.RemoteWin
             };
 
@@ -52,6 +50,11 @@ namespace Sbs20
             if (arguments.ContainsKey("ConflictStrategy"))
             {
                 context.ConflictStrategy = arguments["ConflictStrategy"].ToEnum<ConflictStrategy>();
+            }
+
+            if (arguments.ContainsKey("IsDebug"))
+            {
+                context.IsDebug = true;
             }
 
             return context;
@@ -103,8 +106,11 @@ namespace Sbs20
             replicatorStart.Wait();
             outputs.Draw(replicator);
 
-            Console.WriteLine("Finished. Press <enter> to finish");
-            Console.ReadLine();
+            if (context.IsDebug)
+            {
+                Console.WriteLine("Finished. Press <enter> to finish");
+                Console.ReadLine();
+            }
         }
     }
 }

@@ -43,6 +43,10 @@ TODO
 ## Running on debian linux
 sudo apt-get install mono-complete
 
+See also:
+http://logicalgenetics.com/raspberry-pi-and-mono-hello-world/
+http://www.mono-project.com/docs/getting-started/mono-basics/
+
 ## Example command lines
 
 ### Fast and minimum load
