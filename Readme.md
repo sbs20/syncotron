@@ -4,7 +4,8 @@ Use Syncotron to sync your files with Dropbox (and in the future, other provider
 
 ## Why?
 Syncotron is platform neutral. It runs on x86 or ARM hardware. All you need is a .NET
-runtime which can be mono. It supports
+runtime which can be mono. I wrote this to run on my Raspberry Pi and sync to my NAS.
+It supports
 
  * Mirror Download (just copy what's on the server)
  * Mirror Upload (just upload what's on the local machine)
@@ -41,3 +42,17 @@ TODO
 
 ## Running on debian linux
 sudo apt-get install mono-complete
+
+## Example command lines
+
+### Fast and minimum load
+
+[TODO]
+
+[Downsides]
+
+### Slow but thorough
+
+[TODO]
+
+[Downsides]
