@@ -1,4 +1,4 @@
-﻿# Syncoton
+﻿# Syncotron
 
 Use Syncotron to sync your files with Dropbox (and in the future, other providers).
 
