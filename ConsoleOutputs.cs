@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Sbs20.Syncotron;
+using System;
 
-namespace Sbs20.Syncotron
+namespace Sbs20
 {
     public class ConsoleOutputs
     {

@@ -10,18 +10,18 @@ namespace Sbs20.Syncotron
         private IHashProvider hashProvider;
         public ISettings Settings { get; private set; }
         public ISyncActionTypeChooser SyncActionTypeChooser { get; private set; }
+        public LocalStorage LocalStorage { get; private set; }
 
-        public int MaximumConcurrency { get; set; }
         public string LocalPath { get; set; }
         public string RemotePath { get; set; }
-        public DateTime LastRun { get; set; }
         public CommandType CommandType { get; set; }
-        public SyncDirection ReplicationDirection { get; set; }
+        public SyncDirection SyncDirection { get; set; }
         public ProcessingMode ProcessingMode { get; set; }
+        public FileService RemoteService { get; set; }
         public IList<string> Exclusions { get; private set; }
         public bool IgnoreCertificateErrors { get; set; }
         public HashProviderType HashProviderType { get; set; }
-        public LocalStorage LocalStorage { get; private set; }
+        public int MaximumConcurrency { get; set; }
         public bool IsDebug { get; set; }
         public ConflictStrategy ConflictStrategy { get; set; }
 
@@ -30,8 +30,9 @@ namespace Sbs20.Syncotron
             // If building this from scratch - you will need to implement your own settings
             this.Settings = new Settings();
 
+            this.RemoteService = FileService.Dropbox;
             this.CommandType = CommandType.AnalysisOnly;
-            this.ReplicationDirection = SyncDirection.TwoWay;
+            this.SyncDirection = SyncDirection.TwoWay;
             this.ProcessingMode = ProcessingMode.Serial;
             this.Exclusions = new List<string>();
             this.IgnoreCertificateErrors = false;
@@ -42,7 +43,7 @@ namespace Sbs20.Syncotron
 
         private ISyncActionTypeChooser CreateSyncActionTypeChooser()
         {
-            switch (this.ReplicationDirection)
+            switch (this.SyncDirection)
             {
                 case SyncDirection.TwoWay:
                     return new SyncActionTypeChooserTwoWay(this);

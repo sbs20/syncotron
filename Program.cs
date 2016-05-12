@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Sbs20.Extensions;
+using Sbs20.Syncotron;
 
-namespace Sbs20.Syncotron
+namespace Sbs20
 {
     class Program
     {
@@ -15,19 +17,44 @@ namespace Sbs20.Syncotron
 
             var context = new ReplicatorContext
             {
-                LastRun = DateTime.MinValue,
+                RemoteService = FileService.Dropbox,
                 LocalPath = arguments["LocalPath"],
                 RemotePath = arguments["RemotePath"],
                 CommandType = CommandType.Autosync,
-                ReplicationDirection = SyncDirection.TwoWay,
+                SyncDirection = SyncDirection.TwoWay,
                 ProcessingMode = ProcessingMode.Parallel,
+                MaximumConcurrency = 3,
                 HashProviderType = HashProviderType.DateTimeAndSize,
                 Exclusions = { "*/.@__Thumb*" },
-                MaximumConcurrency = 3,
                 IgnoreCertificateErrors = true,
                 IsDebug = true,
                 ConflictStrategy = ConflictStrategy.RemoteWin
             };
+
+            if (arguments.ContainsKey("CommandType"))
+            {
+                context.CommandType = arguments["CommandType"].ToEnum<CommandType>();
+            }
+
+            if (arguments.ContainsKey("SyncDirection"))
+            {
+                context.SyncDirection = arguments["SyncDirection"].ToEnum<SyncDirection>();
+            }
+
+            if (arguments.ContainsKey("RemoteService"))
+            {
+                context.RemoteService = arguments["RemoteService"].ToEnum<FileService>();
+            }
+
+            if (arguments.ContainsKey("HashProviderType"))
+            {
+                context.HashProviderType = arguments["HashProviderType"].ToEnum<HashProviderType>();
+            }
+
+            if (arguments.ContainsKey("ConflictStrategy"))
+            {
+                context.ConflictStrategy = arguments["ConflictStrategy"].ToEnum<ConflictStrategy>();
+            }
 
             return context;
         }

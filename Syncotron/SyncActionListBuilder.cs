@@ -71,7 +71,7 @@ namespace Sbs20.Syncotron
             {
                 this.RemoteCursor = await cloudService.ForEachAsync(this.Context.RemotePath, true, false, (item) => this.Add(item));
             }
-            else if (this.Context.ReplicationDirection != SyncDirection.MirrorUp)
+            else if (this.Context.SyncDirection != SyncDirection.MirrorUp)
             {
                 this.RemoteCursor = await cloudService.ForEachContinueAsync(this.Context.RemoteCursor, (item) => this.Add(item));
             }
@@ -87,7 +87,7 @@ namespace Sbs20.Syncotron
             {
                 this.LocalCursor = await this.Context.LocalFilesystem.ForEachAsync(this.Context.LocalPath, true, true, (item) => this.Add(item));
             }
-            else if (this.Context.ReplicationDirection != SyncDirection.MirrorDown)
+            else if (this.Context.SyncDirection != SyncDirection.MirrorDown)
             {
                 this.LocalCursor = await this.Context.LocalFilesystem.ForEachContinueAsync(this.Context.LocalCursor, (item) => this.Add(item));
             }

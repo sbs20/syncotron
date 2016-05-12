@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Sbs20.Syncotron
+namespace Sbs20
 {
     public class ConsoleHelper
     {
