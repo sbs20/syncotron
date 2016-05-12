@@ -252,7 +252,7 @@ namespace Sbs20.Syncotron
 
                     using (var downloadStream = await response.GetContentAsStreamAsync())
                     {
-                        await this.context.LocalFilesystem.WriteAsync(localFile.FullName, downloadStream, remoteFile.Rev, remoteFile.ClientModified);
+                        await this.context.LocalFilesystem.WriteAsync(localFile.FullName, downloadStream, remoteFile.ClientModified);
                     }
 
                     Logger.verbose(this, "download():done");

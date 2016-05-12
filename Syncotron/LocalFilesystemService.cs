@@ -160,7 +160,7 @@ namespace Sbs20.Syncotron
             }
         }
 
-        public async Task WriteAsync(string path, Stream stream, string serverRev, DateTime lastModified)
+        public async Task WriteAsync(string path, Stream stream, DateTime lastModified)
         {
             var localFile = new FileInfo(path);
             using (Stream localStream = localFile.OpenWrite())
