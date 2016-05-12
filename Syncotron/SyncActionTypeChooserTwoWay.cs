@@ -16,7 +16,11 @@ namespace Sbs20.Syncotron
             // With two way, the only way we can get a delete is if it's in 
             // a continuation state. Otherwise it's an initial scan and 
             // everything is real and new
-            if (action.Local != null && action.Local.IsDeleted)
+            if (action.Local != null && action.Local.IsDeleted && action.Remote != null && action.Remote.IsDeleted)
+            {
+                return SyncActionType.None;
+            }
+            else if (action.Local != null && action.Local.IsDeleted)
             {
                 return SyncActionType.DeleteRemote;
             }

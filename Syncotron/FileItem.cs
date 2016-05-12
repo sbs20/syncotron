@@ -114,21 +114,30 @@ namespace Sbs20.Syncotron
 
         public static FileItem Create(FileInfo file, IHashProvider hasher)
         {
-            return new FileItem
+            var item = new FileItem
             {
                 Source = FileService.Local,
                 IsFolder = false,
-                IsDeleted = false,
+                IsDeleted = true,
                 Name = file.Name,
                 Path = file.FullName.Replace("\\", "/"),
                 Id = string.Empty,
                 ServerRev = string.Empty,
-                Hash = hasher.Hash(file),
-                Size = (ulong)file.Length,
+                Hash = null,
+                Size = 0,
                 LastModified = file.LastWriteTimeUtc,
                 ClientModified = file.LastWriteTimeUtc,
                 Object = file
             };
+
+            if (file.Exists)
+            {
+                item.IsDeleted = false;
+                item.Hash = hasher.Hash(file);
+                item.Size = (ulong)file.Length;
+            }
+
+            return item;
         }
 
         public static FileItem Create(DirectoryInfo dir)

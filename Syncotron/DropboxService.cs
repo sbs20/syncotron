@@ -292,5 +292,11 @@ namespace Sbs20.Syncotron
 
             return result.Cursor;
         }
+
+        public async Task<FileItem> FileSelect(string path)
+        {
+            var result = await this.Client.Files.GetMetadataAsync(new GetMetadataArg(path));
+            return FileItem.Create(result);
+        }
     }
 }

@@ -29,15 +29,41 @@ namespace Sbs20.Syncotron
             return this.Context.ToCommonPath(file).ToLowerInvariant();
         }
 
+        private bool IsExclusionMatch(string key)
+        {
+            foreach (string exclusion in this.Context.Exclusions)
+            {
+                if (exclusion.StartsWith("*") && exclusion.EndsWith("*"))
+                {
+                    if (key.Contains(exclusion.Replace("*", "").ToLowerInvariant()))
+                    {
+                        return true;
+                    }
+                }
+                else if (key.StartsWith(exclusion.ToLowerInvariant()))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private void Add(FileItem file)
         {
-            lock(mutex)
+            string key = this.Key(file);
+            if (this.IsExclusionMatch(key))
+            {
+                return;
+            }
+
+            lock (mutex)
             {
                 SyncAction action = null;
 
-                if (this.ActionDictionary.ContainsKey(this.Key(file)))
+                if (this.ActionDictionary.ContainsKey(key))
                 {
-                    action = this.ActionDictionary[this.Key(file)];
+                    action = this.ActionDictionary[key];
                 }
                 else
                 {
@@ -64,10 +90,24 @@ namespace Sbs20.Syncotron
             }
         }
 
+        private ScanMode ScanMode
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(this.Context.RemoteCursor) ||
+                   (string.IsNullOrEmpty(this.Context.LocalCursor)))
+                {
+                    return ScanMode.Full;
+                }
+
+                return ScanMode.Continue;
+            }
+        }
+
         private async Task ScanRemoteAsync()
         {
             IFileItemProvider cloudService = new DropboxService(this.Context);
-            if (string.IsNullOrEmpty(this.Context.RemoteCursor))
+            if (this.ScanMode == ScanMode.Full)
             {
                 this.RemoteCursor = await cloudService.ForEachAsync(this.Context.RemotePath, true, false, (item) => this.Add(item));
             }
@@ -83,7 +123,7 @@ namespace Sbs20.Syncotron
 
         private async Task ScanLocalAsync()
         {
-            if (string.IsNullOrEmpty(this.Context.LocalCursor))
+            if (this.ScanMode == ScanMode.Full)
             {
                 this.LocalCursor = await this.Context.LocalFilesystem.ForEachAsync(this.Context.LocalPath, true, true, (item) => this.Add(item));
             }
@@ -97,24 +137,19 @@ namespace Sbs20.Syncotron
             }
         }
 
-        private static bool MatchesExclusion(string key, IEnumerable<string> exclusions)
+        private async Task FurtherScanForTwoWayContinuation()
         {
-            foreach (string exclusion in exclusions)
+            foreach (var action in this.ActionDictionary.Values)
             {
-                if (exclusion.StartsWith("*") && exclusion.EndsWith("*"))
+                if (action.Local == null)
                 {
-                    if (key.Contains(exclusion.Replace("*", "").ToLowerInvariant()))
-                    {
-                        return true;
-                    }
+                    action.Local = await this.Context.LocalFilesystem.FileSelect(action.LocalPath);
                 }
-                else if (key.StartsWith(exclusion.ToLowerInvariant()))
+                else if (action.Remote == null)
                 {
-                    return true;
+                    action.Remote = await this.Context.CloudService.FileSelect(action.RemotePath);
                 }
             }
-
-            return false;
         }
 
         public async Task BuildAsync()
@@ -124,16 +159,18 @@ namespace Sbs20.Syncotron
             await local;
             await remote;
 
+            if (this.ScanMode == ScanMode.Continue && this.Context.SyncDirection == SyncDirection.TwoWay)
+            {
+                await this.FurtherScanForTwoWayContinuation();
+            }
+
             foreach (var action in this.ActionDictionary.Values)
             {
-                if (!MatchesExclusion(action.Key, this.Context.Exclusions))
+                SyncActionType type = this.Context.SyncActionTypeChooser.Choose(action);
+                if (type != SyncActionType.None)
                 {
-                    SyncActionType type = this.Context.SyncActionTypeChooser.Choose(action);
-                    if (type != SyncActionType.None)
-                    {
-                        action.Type = type;
-                        this.Actions.Add(action);
-                    }
+                    action.Type = type;
+                    this.Actions.Add(action);
                 }
             }
 

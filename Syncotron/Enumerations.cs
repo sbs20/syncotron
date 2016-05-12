@@ -51,4 +51,10 @@
         LatestWin,
         KeepBoth
     }
+
+    public enum ScanMode
+    {
+        Full,
+        Continue
+    }
 }

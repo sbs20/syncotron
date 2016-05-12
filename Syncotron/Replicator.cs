@@ -113,14 +113,6 @@ namespace Sbs20.Syncotron
 
         private async Task PopulateActionsListAsync()
         {
-            if ((string.IsNullOrEmpty(this.Context.LocalCursor) && !string.IsNullOrEmpty(this.Context.RemoteCursor)) ||
-                (!string.IsNullOrEmpty(this.Context.LocalCursor) && string.IsNullOrEmpty(this.Context.RemoteCursor)))
-            {
-                // Cursors out of sync. Auto reset. No point in forcing the user to do it
-                Logger.info(this, "Cursors out of sync. Resetting.");
-                this.Reset();
-            }
-
             this.syncActionsBuilder = new SyncActionListBuilder(this.Context);
             await this.syncActionsBuilder.BuildAsync();
             this.actions = this.syncActionsBuilder.Actions;
@@ -154,13 +146,6 @@ namespace Sbs20.Syncotron
             await Task.WhenAll(tasks);
         }
 
-        private void Reset()
-        {
-            this.Context.LocalStorage.SettingsWrite("IsCertified", false);
-            this.Context.LocalCursor = null;
-            this.Context.RemoteCursor = null;
-        }
-
         public async Task StartAsync()
         {
             try
@@ -168,7 +153,9 @@ namespace Sbs20.Syncotron
                 switch (this.Context.CommandType)
                 {
                     case CommandType.Reset:
-                        this.Reset();
+                        this.Context.LocalStorage.SettingsWrite("IsCertified", false);
+                        this.Context.LocalCursor = null;
+                        this.Context.RemoteCursor = null;
                         break;
 
                     case CommandType.AnalysisOnly:

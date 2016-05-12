@@ -74,6 +74,15 @@ namespace Sbs20.Syncotron
             return FileItem.Create(fsi as DirectoryInfo);
         }
 
+        private void FileItemMergeFromIndex(FileItem fileItem)
+        {
+            var existing = this.context.LocalStorage.IndexSelect(fileItem);
+            if (existing != null)
+            {
+                fileItem.ServerRev = existing.ServerRev;
+            }
+        }
+
         public Task DeleteAsync(string path)
         {
             var fsi = this.ToFileSystemInfo(path);
@@ -91,12 +100,7 @@ namespace Sbs20.Syncotron
 
             Action<FileItem> internalAction = (fileItem) =>
             {
-                // Do we already have a record of this exact file?
-                var existing = this.context.LocalStorage.IndexSelect(fileItem);
-                if (existing != null)
-                {
-                    fileItem.ServerRev = existing.ServerRev;
-                }
+                this.FileItemMergeFromIndex(fileItem);
 
                 // Store in scan
                 this.context.LocalStorage.ScanInsert(fileItem);
@@ -232,6 +236,13 @@ namespace Sbs20.Syncotron
             }.ToString();
 
             return Task.FromResult(cursor);
+        }
+
+        public Task<FileItem> FileSelect(string path)
+        {
+            var fileItem = this.ToFileItem(path);
+            this.FileItemMergeFromIndex(fileItem);
+            return Task.FromResult(fileItem);
         }
     }
 }
