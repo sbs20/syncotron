@@ -1,5 +1,6 @@
 ﻿using Dropbox.Api;
 using Dropbox.Api.Files;
+using Dropbox.Api.Users;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ namespace Sbs20.Syncotron
 {
     public class DropboxService : ICloudService
     {
+        private FullAccount currentAccount = null;
         private DropboxClient client = null;
         private ReplicatorContext context = null;
 
@@ -297,6 +299,26 @@ namespace Sbs20.Syncotron
         {
             var result = await this.Client.Files.GetMetadataAsync(new GetMetadataArg(path));
             return FileItem.Create(result);
+        }
+
+        private FullAccount CurrentAccount
+        {
+            get
+            {
+                if (this.currentAccount == null)
+                {
+                    Task<FullAccount> task = this.client.Users.GetCurrentAccountAsync();
+                    task.Wait();
+                    this.currentAccount = task.Result;
+                }
+
+                return this.currentAccount;
+            }
+        }
+
+        public string CurrentAccountEmail
+        {
+            get { return this.CurrentAccount.Email; }
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Sbs20.Syncotron
     /// </summary>
     public class LocalStorage
     {
-        const string connectionString = "URI=file:SqliteTest.db";
+        const string connectionString = "URI=file:syncotron.db";
         private MonoSqliteController dbController;
         private ReplicatorContext context;
 
@@ -25,9 +25,9 @@ namespace Sbs20.Syncotron
 
         private void StructureCreate()
         {
-            this.dbController.ExecuteNonQuery(@"drop table if exists Scan;");
+            this.dbController.ExecuteNonQuery(@"drop table if exists scan;");
 
-            this.dbController.ExecuteNonQuery(@"create table if not exists Scan (
+            this.dbController.ExecuteNonQuery(@"create table if not exists scan (
                     Path nvarchar(1024) collate nocase,
                     LocalRev varchar(64),
                     ServerRev varchar(64),
@@ -37,7 +37,7 @@ namespace Sbs20.Syncotron
                     ClientModified varchar(19)
                 );");
 
-            this.dbController.ExecuteNonQuery(@"create table if not exists Files (
+            this.dbController.ExecuteNonQuery(@"create table if not exists indx (
                     Path nvarchar(1024) collate nocase,
                     LocalRev varchar(64),
                     ServerRev varchar(64),
@@ -47,7 +47,7 @@ namespace Sbs20.Syncotron
                     ClientModified varchar(19)
                 );");
 
-            this.dbController.ExecuteNonQuery(@"create table if not exists Settings (
+            this.dbController.ExecuteNonQuery(@"create table if not exists settings (
                     Key varchar(32),
                     Value varchar(2048)
                 );");
@@ -55,7 +55,7 @@ namespace Sbs20.Syncotron
 
         public T SettingsRead<T>(string key)
         {
-            string sql = string.Format("select Value from Settings where key={0}", DbController.ToParameter(key));
+            string sql = string.Format("select Value from settings where key={0}", DbController.ToParameter(key));
             object o = this.dbController.ExecuteAsScalar(sql);
             try
             {
@@ -82,7 +82,7 @@ namespace Sbs20.Syncotron
                 }
             }
 
-            string sql = string.Format("delete from Settings where key={0}; insert into Settings values ({0}, {1});", 
+            string sql = string.Format("delete from settings where key={0}; insert into settings values ({0}, {1});", 
                 DbController.ToParameter(key),
                 DbController.ToParameter(val));
 
@@ -91,13 +91,13 @@ namespace Sbs20.Syncotron
 
         public void ScanDelete()
         {
-            string sql = "delete from Scan;";
+            string sql = "delete from scan;";
             this.dbController.ExecuteNonQuery(sql);
         }
 
         public void UpdateIndexFromScan()
         {
-            string sql = "delete from Files; insert into Files select * from Scan;";
+            string sql = "delete from indx; insert into indx select * from scan;";
             this.dbController.ExecuteNonQuery(sql);
         }
 
@@ -123,7 +123,7 @@ namespace Sbs20.Syncotron
 
         public void ScanInsert(FileItem fileItem)
         {
-            string sql = string.Format("insert into Scan values ({0}, {1}, {2}, {3}, {4}, {5}, {6});",
+            string sql = string.Format("insert into scan values ({0}, {1}, {2}, {3}, {4}, {5}, {6});",
                 DbController.ToParameter(fileItem.Path),
                 DbController.ToParameter(fileItem.Hash),
                 DbController.ToParameter(fileItem.ServerRev),
@@ -137,7 +137,7 @@ namespace Sbs20.Syncotron
 
         public void IndexWrite(FileItem fileItem)
         {
-            string sql = string.Format("delete from Files where Path={0}; insert into Files values ({0}, {1}, {2}, {3}, {4}, {5}, {6});",
+            string sql = string.Format("delete from indx where Path={0}; insert into indx values ({0}, {1}, {2}, {3}, {4}, {5}, {6});",
                 DbController.ToParameter(fileItem.Path),
                 DbController.ToParameter(fileItem.Hash),
                 DbController.ToParameter(fileItem.ServerRev),
@@ -151,9 +151,9 @@ namespace Sbs20.Syncotron
 
         public void IndexUpdate(FileItem fileItemKey, string hash, string serverRev)
         {
-            string sql = string.Format("update Files set LocalRev={1}, ServerRev={2} where Path={0};",
+            string sql = string.Format("update indx set LocalRev={1}, ServerRev={2} where Path={0};",
                 DbController.ToParameter(fileItemKey.Path),
-                DbController.ToParameter(fileItemKey.Hash),
+                DbController.ToParameter(hash),
                 DbController.ToParameter(serverRev));
 
             this.dbController.ExecuteNonQuery(sql);
@@ -161,13 +161,13 @@ namespace Sbs20.Syncotron
 
         public void IndexDelete(string path)
         {
-            string sql = string.Format("delete from Files where path={0};", DbController.ToParameter(path));
+            string sql = string.Format("delete from indx where path={0};", DbController.ToParameter(path));
             this.dbController.ExecuteNonQuery(sql);
         }
 
         public FileItem IndexSelect(FileItem keyFile)
         {
-            string sql = string.Format("select * from Files where Path = {0} and LocalRev={1};",
+            string sql = string.Format("select * from indx where Path = {0} and LocalRev={1};",
                 DbController.ToParameter(keyFile.Path),
                 DbController.ToParameter(keyFile.Hash));
 
@@ -178,24 +178,24 @@ namespace Sbs20.Syncotron
         {
             // TODO - parameters
             string sql = @"select 'New' Action, *
-    from Scan
-    where Path not in (select Path from Files)
+    from scan
+    where Path not in (select Path from indx)
 union
 select 'Delete' Action, * 
-    from Files
-    where Path not in (select Path from Scan)
+    from indx
+    where Path not in (select Path from scan)
 union
 select 
 	'Change' Action, scan.*
-	from Files
-        inner join Scan on Files.Path = Scan.Path
-    where Files.LocalRev != Scan.LocalRev";
+	from indx
+        inner join scan on indx.Path = scan.Path
+    where indx.LocalRev != scan.LocalRev";
             return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r));
         }
 
         public IEnumerable<FileItem> ScanSelect()
         {
-            string sql = @"select * from Scan";
+            string sql = @"select * from scan";
             return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r));
         }
     }

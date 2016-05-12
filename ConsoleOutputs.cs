@@ -107,6 +107,7 @@ namespace Sbs20
         public void Draw(Replicator replicator)
         {
             Console.SetCursorPosition(this.ConsoleX, this.ConsoleY);
+            this.WriteLine("Current user: {0}", replicator.Context.CloudService.CurrentAccountEmail);
             this.WriteLine("Distinct files: {0}", replicator.DistinctFileCount);
             this.WriteLine("Local files: {0}", replicator.LocalFileCount);
             this.WriteLine("Remote files: {0}", replicator.RemoteFileCount);
