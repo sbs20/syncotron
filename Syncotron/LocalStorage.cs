@@ -159,7 +159,7 @@ namespace Sbs20.Syncotron
             this.dbController.ExecuteNonQuery(sql);
         }
 
-        public void FileDelete(string path)
+        public void IndexDelete(string path)
         {
             string sql = string.Format("delete from Files where path={0};", DbController.ToParameter(path));
             this.dbController.ExecuteNonQuery(sql);

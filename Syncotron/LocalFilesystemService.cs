@@ -77,7 +77,11 @@ namespace Sbs20.Syncotron
         public Task DeleteAsync(string path)
         {
             var fsi = this.ToFileSystemInfo(path);
-            fsi.Delete();
+            if (fsi.Exists)
+            {
+                fsi.Delete();
+            }
+
             return Task.FromResult(0);
         }
 

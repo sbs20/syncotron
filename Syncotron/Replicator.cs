@@ -84,7 +84,7 @@ namespace Sbs20.Syncotron
             {
                 case SyncActionType.DeleteLocal:
                     await this.Context.LocalFilesystem.DeleteAsync(action.LocalPath);
-                    this.Context.LocalStorage.FileDelete(action.LocalPath);
+                    this.Context.LocalStorage.IndexDelete(action.LocalPath);
                     break;
 
                 case SyncActionType.Download:
@@ -96,7 +96,7 @@ namespace Sbs20.Syncotron
 
                 case SyncActionType.DeleteRemote:
                     await this.Context.CloudService.DeleteAsync(action.RemotePath);
-                    this.Context.LocalStorage.FileDelete(action.LocalPath);
+                    this.Context.LocalStorage.IndexDelete(action.LocalPath);
                     break;
 
                 case SyncActionType.Upload:
