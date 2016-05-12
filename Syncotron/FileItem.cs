@@ -68,7 +68,7 @@ namespace Sbs20.Syncotron
                 Name = dbxFolder.Name,
                 Path = dbxFolder.PathDisplay,
                 Id = dbxFolder.Id,
-                ServerRev = null,
+                ServerRev = string.Empty,
                 Size = 0,
                 LastModified = DateTime.MinValue,
                 ClientModified = DateTime.MinValue,

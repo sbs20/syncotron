@@ -21,6 +21,7 @@
         AnalysisOnly,
         Certify,
         Autosync,
+        Fullsync,
         Reset
     }
 

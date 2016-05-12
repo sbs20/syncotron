@@ -29,6 +29,11 @@ namespace Sbs20.Syncotron
                     return true;
                 };
             }
+
+            if (context.IsRunningOnMono)
+            {
+                Environment.SetEnvironmentVariable("MONO_IOMAP", "all");
+            }
         }
 
         private void OnActionStart(SyncAction action)
@@ -174,6 +179,7 @@ namespace Sbs20.Syncotron
                         this.Context.LocalStorage.SettingsWrite("LastSync", DateTime.Now);
                         break;
 
+                    case CommandType.Fullsync:
                     case CommandType.Autosync:
                         await this.PopulateActionsListAsync();
                         await this.ProcessActionsAsync();

@@ -147,5 +147,10 @@ namespace Sbs20.Syncotron
             get { return this.LocalStorage.SettingsRead<string>("LocalCursor"); }
             set { this.LocalStorage.SettingsWrite("LocalCursor", value); }
         }
+
+        public bool IsRunningOnMono
+        {
+            get { return Type.GetType("Mono.Runtime") != null; }
+        }
     }
 }

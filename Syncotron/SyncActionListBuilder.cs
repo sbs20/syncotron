@@ -95,7 +95,8 @@ namespace Sbs20.Syncotron
             get
             {
                 if (string.IsNullOrEmpty(this.Context.RemoteCursor) ||
-                   (string.IsNullOrEmpty(this.Context.LocalCursor)))
+                    string.IsNullOrEmpty(this.Context.LocalCursor) ||
+                    this.Context.CommandType == CommandType.Fullsync)
                 {
                     return ScanMode.Full;
                 }

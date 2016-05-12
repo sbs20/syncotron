@@ -9,8 +9,6 @@ namespace Sbs20
     {
         // http://logicalgenetics.com/raspberry-pi-and-mono-hello-world/
         // http://www.mono-project.com/docs/getting-started/mono-basics/
-        //  export MONO_IOMAP=all
-
         private static ReplicatorContext ToReplicatorContext(string[] args)
         {
             var arguments = ConsoleHelper.ReadArguments(args);
@@ -62,6 +60,7 @@ namespace Sbs20
         static void Main(string[] args)
         {
             var context = ToReplicatorContext(args);
+
             Replicator replicator = new Replicator(context);
 
             var outputs = new ConsoleOutputs();
