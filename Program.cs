@@ -28,8 +28,6 @@ namespace Sbs20
                 Recover = false
             };
 
-
-
             if (arguments.ContainsKey("CommandType"))
             {
                 context.CommandType = arguments["CommandType"].ToEnum<CommandType>();

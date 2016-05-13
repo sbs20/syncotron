@@ -6,7 +6,6 @@ namespace Sbs20.Syncotron
     public class ReplicatorContext
     {
         private LocalStorage localStorage;
-
         private LocalFilesystemService localFilesystem;
         private ICloudService cloudService;
         private IHashProvider hashProvider;
