@@ -112,7 +112,7 @@ namespace Sbs20.Syncotron
 
         private async Task ScanRemoteAsync()
         {
-            IFileItemProvider cloudService = new DropboxService(this.Context);
+            IFileItemProvider cloudService = this.Context.CloudService;
             if (this.ScanMode == ScanMode.Full)
             {
                 this.RemoteCursor = await cloudService.ForEachAsync(this.Context.RemotePath, true, false, (item) => this.Add(item));

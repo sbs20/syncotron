@@ -21,7 +21,7 @@ namespace Sbs20
                 ProcessingMode = ProcessingMode.Parallel,
                 MaximumConcurrency = 3,
                 HashProviderType = HashProviderType.DateTimeAndSize,
-                Exclusions = { "*/.@__Thumb*", "*/.dropbox", "*/desktop.ini" },
+                Exclusions = { "*/.@__Thumb*", "*/.dropbox", "*/desktop.ini", "/Shared" },
                 IgnoreCertificateErrors = true,
                 IsDebug = false,
                 ConflictStrategy = ConflictStrategy.RemoteWin,

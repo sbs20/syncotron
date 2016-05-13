@@ -224,12 +224,15 @@ namespace Sbs20.Syncotron
                 }
             }
 
+            this.context.LocalStorage.BeginTransaction();
             this.context.LocalStorage.UpdateIndexFromScan();
 
             foreach (var action in actions)
             {
                 this.context.LocalStorage.IndexUpdate(action.Local, action.Local.Hash, action.Remote.ServerRev);
             }
+
+            this.context.LocalStorage.EndTransaction();
         }
 
         public Task<string> LatestCursor(string path, bool recursive, bool deleted)
