@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Sbs20.Syncotron
 {
-    public class Replicator
+    public class Replicator : IDisposable
     {
         private SyncActionListBuilder syncActionsBuilder;
         private IList<SyncAction> actions;
@@ -34,6 +34,13 @@ namespace Sbs20.Syncotron
             {
                 Environment.SetEnvironmentVariable("MONO_IOMAP", "all");
             }
+
+            if (context.IsRunning)
+            {
+                throw new InvalidOperationException("Replicator already running");
+            }
+
+            context.IsRunning = true;
         }
 
         private void OnActionStart(SyncAction action)
@@ -194,6 +201,11 @@ namespace Sbs20.Syncotron
             {
                 this.OnException(ex);
             }
+        }
+
+        public void Dispose()
+        {
+            this.Context.IsRunning = false;
         }
     }
 }

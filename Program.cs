@@ -64,54 +64,62 @@ namespace Sbs20
 
         static void Main(string[] args)
         {
-            var context = ToReplicatorContext(args);
-
-            Replicator replicator = new Replicator(context);
-
-            var outputs = new ConsoleOutputs();
-
-            replicator.ActionStart += outputs.ActionStartHandler;
-            replicator.ActionComplete += outputs.ActionCompleteHandler;
-            replicator.Exception += outputs.ExceptionHandler;
-
-            while (!context.CloudService.IsAuthorised)
+            try
             {
-                Uri url = context.CloudService.StartAuthorisation();
-                Console.WriteLine("You have not yet authorised syncotron with your cloud service");
-                Console.WriteLine("Please navigate here and log in");
-                Console.WriteLine();
-                Console.WriteLine(url);
-                Console.WriteLine();
-                Console.WriteLine("Then paste the result back in here and press <enter>");
-                string response = Console.ReadLine();
-                try
+                var context = ToReplicatorContext(args);
+
+                using (Replicator replicator = new Replicator(context))
                 {
-                    context.CloudService.FinishAuthorisation(response);
+                    var outputs = new ConsoleOutputs();
+
+                    replicator.ActionStart += outputs.ActionStartHandler;
+                    replicator.ActionComplete += outputs.ActionCompleteHandler;
+                    replicator.Exception += outputs.ExceptionHandler;
+
+                    while (!context.CloudService.IsAuthorised)
+                    {
+                        Uri url = context.CloudService.StartAuthorisation();
+                        Console.WriteLine("You have not yet authorised syncotron with your cloud service");
+                        Console.WriteLine("Please navigate here and log in");
+                        Console.WriteLine();
+                        Console.WriteLine(url);
+                        Console.WriteLine();
+                        Console.WriteLine("Then paste the result back in here and press <enter>");
+                        string response = Console.ReadLine();
+                        try
+                        {
+                            context.CloudService.FinishAuthorisation(response);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                            Console.ReadLine();
+                        }
+                    }
+
+                    Console.Clear();
+
+                    Task replicatorStart = replicator.StartAsync();
+
+                    while (replicatorStart.Status != TaskStatus.RanToCompletion)
+                    {
+                        Task.Delay(200).Wait();
+                        outputs.Draw(replicator);
+                    }
+
+                    replicatorStart.Wait();
+                    outputs.Draw(replicator);
                 }
-                catch (Exception ex)
+
+                if (context.IsDebug)
                 {
-                    Console.WriteLine(ex);
+                    Console.WriteLine("Finished. Press <enter> to finish");
                     Console.ReadLine();
                 }
             }
-
-            Console.Clear();
-
-            Task replicatorStart = replicator.StartAsync();
-
-            while (replicatorStart.Status != TaskStatus.RanToCompletion)
+            catch (InvalidOperationException ex)
             {
-                Task.Delay(200).Wait();
-                outputs.Draw(replicator);
-            }
-
-            replicatorStart.Wait();
-            outputs.Draw(replicator);
-
-            if (context.IsDebug)
-            {
-                Console.WriteLine("Finished. Press <enter> to finish");
-                Console.ReadLine();
+                Console.WriteLine(ex.Message);
             }
         }
     }

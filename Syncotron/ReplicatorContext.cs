@@ -174,6 +174,12 @@ namespace Sbs20.Syncotron
             }
         }
 
+        public bool IsRunning
+        {
+            get { return this.LocalStorage.SettingsRead<bool>("IsRunning"); }
+            set { this.LocalStorage.SettingsWrite("IsRunning", value); }
+        }
+
         public string RemoteCursor
         {
             get { return this.LocalStorage.SettingsRead<string>("RemoteCursor"); }
