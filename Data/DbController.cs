@@ -6,10 +6,11 @@ using System.Text.RegularExpressions;
 
 namespace Sbs20.Data
 {
-    public abstract class DbController
+    public abstract class DbController : IDisposable
     {
         protected int CommmandTimeout { get; set; }
         protected string connectionString;
+        private IDbConnection connection;
 
         protected DbController(string connectionString)
         {
@@ -18,6 +19,19 @@ namespace Sbs20.Data
 
         protected abstract IDbConnection CreateConnection();
         protected abstract DbDataAdapter CreateDataAdapter(IDbCommand command);
+
+        private IDbConnection Connection
+        {
+            get
+            {
+                if (this.connection == null)
+                {
+                    this.connection = this.CreateConnection();
+                }
+
+                return this.connection;
+            }
+        }
 
         private IDbCommand CreateCommand(IDbConnection connection, string commandText)
         {
@@ -33,8 +47,7 @@ namespace Sbs20.Data
         {
             lock(mutex)
             {
-                using (IDbConnection connection = this.CreateConnection())
-                using (IDbCommand command = CreateCommand(connection, commandText))
+                using (IDbCommand command = CreateCommand(this.Connection, commandText))
                 {
                     return function(command);
                 }
@@ -185,6 +198,14 @@ namespace Sbs20.Data
         public static DateTime ToDateTime(object o)
         {
             return o is DBNull ? DateTime.MinValue : Convert.ToDateTime(o);
+        }
+
+        public void Dispose()
+        {
+            if (this.connection != null)
+            {
+                this.connection.Dispose();
+            }
         }
     }
 }

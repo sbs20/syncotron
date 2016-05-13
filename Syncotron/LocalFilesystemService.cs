@@ -107,6 +107,10 @@ namespace Sbs20.Syncotron
                 action(fileItem);
             };
 
+            // This improves performance so much it's unreal
+            // see: http://stackoverflow.com/questions/1711631/improve-insert-per-second-performance-of-sqlite
+            this.context.LocalStorage.BeginTransaction();
+
             await Task.Run(() =>
             {
                 DirectoryInfo root = new DirectoryInfo(path);
@@ -129,6 +133,8 @@ namespace Sbs20.Syncotron
                     internalAction(item);
                 }
             });
+
+            this.context.LocalStorage.EndTransaction();
 
             return new Cursor
             {

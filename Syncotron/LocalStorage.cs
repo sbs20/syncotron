@@ -10,7 +10,7 @@ namespace Sbs20.Syncotron
     /// There should only ever be ONE of these objects in play at a time in order to
     /// avoid SQLite concurrency issues
     /// </summary>
-    public class LocalStorage
+    public class LocalStorage : IDisposable
     {
         const string connectionStringStub = "URI=file:{0}";
         private MonoSqliteController dbController;
@@ -19,6 +19,7 @@ namespace Sbs20.Syncotron
         {
             string connectionString = string.Format(connectionStringStub, filename);
             this.dbController = new MonoSqliteController(connectionString);
+            this.dbController.JournalInMemory();
             this.StructureCreate();
         }
 
@@ -196,6 +197,24 @@ select
         {
             string sql = @"select * from scan";
             return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r));
+        }
+
+        public void BeginTransaction()
+        {
+            this.dbController.ExecuteNonQuery("BEGIN TRANSACTION");
+        }
+
+        public void EndTransaction()
+        {
+            this.dbController.ExecuteNonQuery("END TRANSACTION");
+        }
+
+        public void Dispose()
+        {
+            if (this.dbController != null)
+            {
+                this.dbController.Dispose();
+            }
         }
     }
 }

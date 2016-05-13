@@ -15,18 +15,20 @@ namespace Sbs20
             {
                 RemoteService = FileService.Dropbox,
                 LocalPath = arguments["LocalPath"],
-                RemotePath = arguments["RemotePath"],
+                RemotePath = arguments["RemotePath"] ?? string.Empty,
                 CommandType = CommandType.Autosync,
                 SyncDirection = SyncDirection.TwoWay,
                 ProcessingMode = ProcessingMode.Parallel,
                 MaximumConcurrency = 3,
                 HashProviderType = HashProviderType.DateTimeAndSize,
-                Exclusions = { "*/.@__Thumb*" },
+                Exclusions = { "*/.@__Thumb*", "*/.dropbox", "*/desktop.ini" },
                 IgnoreCertificateErrors = true,
                 IsDebug = false,
                 ConflictStrategy = ConflictStrategy.RemoteWin,
                 Recover = false
             };
+
+
 
             if (arguments.ContainsKey("CommandType"))
             {
@@ -63,7 +65,7 @@ namespace Sbs20
                 context.Recover = true;
             }
 
-            context.Persist();
+            context.CleanAndPersist();
 
             return context;
         }

@@ -41,6 +41,10 @@ namespace Sbs20.Syncotron
                         return true;
                     }
                 }
+                else if (exclusion.StartsWith("*") && key.EndsWith(exclusion.Replace("*", "")))
+                {
+                    return true;
+                }
                 else if (key.StartsWith(exclusion.ToLowerInvariant()))
                 {
                     return true;

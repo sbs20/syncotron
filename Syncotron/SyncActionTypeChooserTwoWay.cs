@@ -30,7 +30,7 @@ namespace Sbs20.Syncotron
             }
 
             // Simple case of upload
-            if (action.Local != null && !action.Local.IsFolder && action.Remote == null)
+            if (action.Local != null && action.Remote == null)
             {
                 return SyncActionType.Upload;
             }

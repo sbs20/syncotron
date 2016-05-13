@@ -67,8 +67,11 @@ namespace Sbs20.Syncotron
             }
         }
 
-        public void Persist()
+        public void CleanAndPersist()
         {
+            this.LocalPath =  AsDirectoryPath(this.LocalPath);
+            this.RemotePath = AsDirectoryPath(this.RemotePath);
+
             this.LocalStorage.SettingsWrite("LocalPath", this.LocalPath);
             this.LocalStorage.SettingsWrite("RemotePath", this.RemotePath);
             this.LocalStorage.SettingsWrite("CommandType", this.CommandType);
@@ -104,6 +107,17 @@ namespace Sbs20.Syncotron
         private static string AsUnixPath(string path)
         {
             return path == null ? null : path.Replace("\\", "/");
+        }
+
+        private static string AsDirectoryPath(string path)
+        {
+            var p = AsUnixPath(path);
+            if (p.EndsWith("/"))
+            {
+                p = p.Substring(0, p.Length - 1);
+            }
+
+            return p;
         }
 
         public string ToCommonPath(FileItem file)
