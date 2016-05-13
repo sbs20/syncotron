@@ -5,12 +5,13 @@ namespace Sbs20.Syncotron
 {
     public class ReplicatorContext
     {
+        private LocalStorage localStorage;
+
         private LocalFilesystemService localFilesystem;
         private ICloudService cloudService;
         private IHashProvider hashProvider;
         public ISettings Settings { get; private set; }
         public ISyncActionTypeChooser SyncActionTypeChooser { get; private set; }
-        public LocalStorage LocalStorage { get; private set; }
 
         public string LocalPath { get; set; }
         public string RemotePath { get; set; }
@@ -29,7 +30,6 @@ namespace Sbs20.Syncotron
         {
             // If building this from scratch - you will need to implement your own settings
             this.Settings = new Settings();
-
             this.RemoteService = FileService.Dropbox;
             this.CommandType = CommandType.AnalysisOnly;
             this.SyncDirection = SyncDirection.TwoWay;
@@ -37,8 +37,46 @@ namespace Sbs20.Syncotron
             this.Exclusions = new List<string>();
             this.IgnoreCertificateErrors = false;
             this.HashProviderType = HashProviderType.DateTimeAndSize;
-            this.LocalStorage = new LocalStorage(this);
             this.SyncActionTypeChooser = this.CreateSyncActionTypeChooser();
+        }
+
+        public string LocalStorageFilename()
+        {
+            var key = AsUnixPath(this.LocalPath.ToLowerInvariant()) + ":"
+                    + AsUnixPath(this.RemotePath.ToLowerInvariant());
+
+            var bytes = new MD5Hash().HashBytes(key);
+            var hash = Common.Base32Encoding.ToString(bytes).ToLowerInvariant().Replace("=", "$");
+            return string.Format("syncotron_{0}.db", hash);
+        }
+
+        public LocalStorage LocalStorage
+        {
+            get
+            {
+                if (this.localStorage == null)
+                {
+                    this.localStorage = new LocalStorage(this.LocalStorageFilename());
+                }
+
+                return this.localStorage;
+            }
+        }
+
+        public void Persist()
+        {
+            this.LocalStorage.SettingsWrite("LocalPath", this.LocalPath);
+            this.LocalStorage.SettingsWrite("RemotePath", this.RemotePath);
+            this.LocalStorage.SettingsWrite("CommandType", this.CommandType);
+            this.LocalStorage.SettingsWrite("SyncDirection", this.SyncDirection);
+            this.LocalStorage.SettingsWrite("ProcessingMode", this.ProcessingMode);
+            this.LocalStorage.SettingsWrite("RemoteService", this.RemoteService);
+            this.LocalStorage.SettingsWrite("Exclusions", this.Exclusions);
+            this.LocalStorage.SettingsWrite("IgnoreCertificateErrors", this.IgnoreCertificateErrors);
+            this.LocalStorage.SettingsWrite("HashProviderType", this.HashProviderType);
+            this.LocalStorage.SettingsWrite("MaximumConcurrency", this.MaximumConcurrency);
+            this.LocalStorage.SettingsWrite("IsDebug", this.IsDebug);
+            this.LocalStorage.SettingsWrite("ConflictStrategy", this.ConflictStrategy);
         }
 
         private ISyncActionTypeChooser CreateSyncActionTypeChooser()

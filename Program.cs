@@ -57,6 +57,8 @@ namespace Sbs20
                 context.IsDebug = true;
             }
 
+            context.Persist();
+
             return context;
         }
 

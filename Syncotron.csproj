@@ -76,6 +76,7 @@
     <Compile Include="Data\DbController.cs" />
     <Compile Include="Data\Enumerations.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />
+    <Compile Include="Common\Base32Encoding.cs" />
     <Compile Include="Syncotron\SyncActionTypeChooserMirrorDown.cs" />
     <Compile Include="Syncotron\SyncActionTypeChooserMirrorUp.cs" />
     <Compile Include="Syncotron\SyncActionTypeChooserTwoWay.cs" />

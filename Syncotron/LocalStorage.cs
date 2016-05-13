@@ -12,14 +12,13 @@ namespace Sbs20.Syncotron
     /// </summary>
     public class LocalStorage
     {
-        const string connectionString = "URI=file:syncotron.db";
+        const string connectionStringStub = "URI=file:{0}";
         private MonoSqliteController dbController;
-        private ReplicatorContext context;
 
-        public LocalStorage(ReplicatorContext context)
+        public LocalStorage(string filename)
         {
+            string connectionString = string.Format(connectionStringStub, filename);
             this.dbController = new MonoSqliteController(connectionString);
-            this.context = context;
             this.StructureCreate();
         }
 
