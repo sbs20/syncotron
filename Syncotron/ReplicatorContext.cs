@@ -37,13 +37,16 @@ namespace Sbs20.Syncotron
             this.Exclusions = new List<string>();
             this.IgnoreCertificateErrors = false;
             this.HashProviderType = HashProviderType.DateTimeAndSize;
+
+            // Create helpers
             this.SyncActionTypeChooser = this.CreateSyncActionTypeChooser();
         }
 
         public string LocalStorageFilename()
         {
-            var key = AsUnixPath(this.LocalPath.ToLowerInvariant()) + ":"
-                    + AsUnixPath(this.RemotePath.ToLowerInvariant());
+            var key = this.RemoteService.ToString() + ":"
+                + AsUnixPath(this.LocalPath.ToLowerInvariant()) + ":"
+                + AsUnixPath(this.RemotePath.ToLowerInvariant());
 
             var bytes = new MD5Hash().HashBytes(key);
             var hash = Common.Base32Encoding.ToString(bytes).ToLowerInvariant().Replace("=", "$");
