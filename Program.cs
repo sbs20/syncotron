@@ -24,7 +24,8 @@ namespace Sbs20
                 Exclusions = { "*/.@__Thumb*" },
                 IgnoreCertificateErrors = true,
                 IsDebug = false,
-                ConflictStrategy = ConflictStrategy.RemoteWin
+                ConflictStrategy = ConflictStrategy.RemoteWin,
+                Recover = false
             };
 
             if (arguments.ContainsKey("CommandType"))
@@ -55,6 +56,11 @@ namespace Sbs20
             if (arguments.ContainsKey("IsDebug"))
             {
                 context.IsDebug = true;
+            }
+
+            if (arguments.ContainsKey("Recover"))
+            {
+                context.Recover = true;
             }
 
             context.Persist();

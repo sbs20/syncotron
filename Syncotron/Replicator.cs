@@ -35,7 +35,7 @@ namespace Sbs20.Syncotron
                 Environment.SetEnvironmentVariable("MONO_IOMAP", "all");
             }
 
-            if (context.IsRunning)
+            if (!context.Recover && context.IsRunning)
             {
                 throw new InvalidOperationException("Replicator already running");
             }

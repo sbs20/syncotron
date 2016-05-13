@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -153,8 +154,36 @@ namespace Sbs20.Syncotron
             }
         }
 
+        private static bool DirectoryIsEmptyOrDoesNotExist(string path)
+        {
+            if (!System.IO.Directory.Exists(path))
+            {
+                return true;
+            }
+
+            if (!System.IO.Directory.EnumerateFileSystemEntries(path).Any())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public async Task BuildAsync()
         {
+            if (!string.IsNullOrEmpty(this.Context.LocalCursor) &&
+                DirectoryIsEmptyOrDoesNotExist(this.Context.LocalPath))
+            {
+                // We have a local cursor which means we've run before. And yet the local
+                // directory doesn't exist. Depending on our sync direction this either means
+                // deleting everything remotely or re-downloading everything. This is sufficiently
+                // bad that we will defer to the user. If this is deliberate then the user can 
+                // either delete this job, manually delete remotely or reset. If not, perhaps
+                // it's a missing UNC share, then we've just saved the data.
+                throw new InvalidOperationException(
+                    "LocalPath is empty or does not exist, but this job has previously run. Aborting to protect data.");
+            }
+
             var local = this.ScanLocalAsync();
             var remote = this.ScanRemoteAsync();
             await local;

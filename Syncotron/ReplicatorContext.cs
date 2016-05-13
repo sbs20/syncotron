@@ -25,6 +25,7 @@ namespace Sbs20.Syncotron
         public int MaximumConcurrency { get; set; }
         public bool IsDebug { get; set; }
         public ConflictStrategy ConflictStrategy { get; set; }
+        public bool Recover { get; set; }
 
         public ReplicatorContext()
         {
