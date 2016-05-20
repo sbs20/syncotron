@@ -84,11 +84,23 @@ namespace Sbs20.Syncotron
 
                 if (file.Source == FileService.Local)
                 {
+                    if (action.Local != null)
+                    {
+                        throw new InvalidOperationException(
+                            string.Format("Cannot add local file twice: {0}", action.LocalPath));
+                    }
+
                     action.Local = file;
                     this.LocalFileCount++;
                 }
                 else
                 {
+                    if (action.Remote != null)
+                    {
+                        throw new InvalidOperationException(
+                            string.Format("Cannot add remote file twice: {0}", action.RemotePath));
+                    }
+
                     action.Remote = file;
                     this.RemoteFileCount++;
                 }

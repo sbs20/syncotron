@@ -194,7 +194,7 @@ namespace Sbs20.Syncotron
                         {
                             if (index == 0)
                             {
-                                var result = await this.Client.Files.UploadSessionStartAsync(memoryStream);
+                                var result = await this.Client.Files.UploadSessionStartAsync(body: memoryStream);
                                 sessionId = result.SessionId;
                             }
                             else
@@ -208,7 +208,7 @@ namespace Sbs20.Syncotron
                                 }
                                 else
                                 {
-                                    await this.Client.Files.UploadSessionAppendAsync(cursor, memoryStream);
+                                    await this.Client.Files.UploadSessionAppendV2Async(cursor, body: memoryStream);
                                 }
                             }
                         }
