@@ -248,7 +248,7 @@ namespace Sbs20.Syncotron
             this.context.LocalStorage.EndTransaction();
         }
 
-        public Task<string> LatestCursor(string path, bool recursive, bool deleted)
+        public Task<string> LatestCursorAsync(string path, bool recursive, bool deleted)
         {
             string cursor = new Cursor
             {
@@ -260,7 +260,7 @@ namespace Sbs20.Syncotron
             return Task.FromResult(cursor);
         }
 
-        public Task<FileItem> FileSelect(string path)
+        public Task<FileItem> FileSelectAsync(string path)
         {
             var fileItem = this.ToFileItem(path);
             this.FileItemMergeFromIndex(fileItem);

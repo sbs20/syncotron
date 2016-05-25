@@ -135,7 +135,7 @@ namespace Sbs20.Syncotron
             }
             else
             {
-                this.RemoteCursor = await cloudService.LatestCursor(this.Context.RemotePath, true, true);
+                this.RemoteCursor = await cloudService.LatestCursorAsync(this.Context.RemotePath, true, true);
             }
         }
 
@@ -151,7 +151,7 @@ namespace Sbs20.Syncotron
             }
             else
             {
-                this.LocalCursor = await this.Context.LocalFilesystem.LatestCursor(this.Context.LocalPath, true, true);
+                this.LocalCursor = await this.Context.LocalFilesystem.LatestCursorAsync(this.Context.LocalPath, true, true);
             }
         }
 
@@ -161,11 +161,11 @@ namespace Sbs20.Syncotron
             {
                 if (action.Local == null)
                 {
-                    action.Local = await this.Context.LocalFilesystem.FileSelect(action.LocalPath);
+                    action.Local = await this.Context.LocalFilesystem.FileSelectAsync(action.LocalPath);
                 }
                 else if (action.Remote == null)
                 {
-                    action.Remote = await this.Context.CloudService.FileSelect(action.RemotePath);
+                    action.Remote = await this.Context.CloudService.FileSelectAsync(action.RemotePath);
                 }
             }
         }

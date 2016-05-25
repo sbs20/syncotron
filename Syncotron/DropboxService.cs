@@ -304,7 +304,7 @@ namespace Sbs20.Syncotron
             }
         }
 
-        public async Task<string> LatestCursor(string path, bool recursive, bool deleted)
+        public async Task<string> LatestCursorAsync(string path, bool recursive, bool deleted)
         {
             var result = await this.Client.Files.ListFolderGetLatestCursorAsync(new ListFolderArg(
                 path, recursive, false, deleted));
@@ -312,7 +312,7 @@ namespace Sbs20.Syncotron
             return result.Cursor;
         }
 
-        public async Task<FileItem> FileSelect(string path)
+        public async Task<FileItem> FileSelectAsync(string path)
         {
             var result = await this.Client.Files.GetMetadataAsync(new GetMetadataArg(path));
             return FileItem.Create(result);
