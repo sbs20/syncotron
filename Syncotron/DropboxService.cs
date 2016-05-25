@@ -1,6 +1,7 @@
 ﻿using Dropbox.Api;
 using Dropbox.Api.Files;
 using Dropbox.Api.Users;
+using log4net;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ namespace Sbs20.Syncotron
 {
     public class DropboxService : ICloudService
     {
+        private static readonly ILog log = LogManager.GetLogger(typeof(DropboxService));
         private FullAccount currentAccount = null;
         private DropboxClient client = null;
         private ReplicatorContext context = null;
@@ -84,6 +86,8 @@ namespace Sbs20.Syncotron
         {
             Action<Metadata> handleEntry = (entry) =>
             {
+                log.InfoFormat("ForEachAsync():{0}", entry.PathDisplay);
+
                 var item = FileItem.Create(entry);
                 if (item.Path != this.context.RemotePath)
                 {
@@ -145,19 +149,19 @@ namespace Sbs20.Syncotron
 
         public async Task MoveAsync(FileItem file, string desiredPath)
         {
-            Logger.info(this, "move():Start");
+            log.Debug("MoveAsync():Start");
             FileMetadata remoteFile = (FileMetadata)file.Object;
 
             if (remoteFile != null)
             {
                 await this.Client.Files.MoveAsync(remoteFile.PathLower, desiredPath);
-                Logger.verbose(this, "move():done");
+                log.Debug("MoveAsync():done");
             }
         }
 
         public async Task UploadAsync(FileItem file)
         {
-            Logger.info(this, "upload():Start");
+            log.Debug("UploadAsync():Start");
             FileInfo localFile = (FileInfo)file.Object;
 
             if (localFile == null)
@@ -224,13 +228,13 @@ namespace Sbs20.Syncotron
                     file.ServerRev = result.Rev;
                 }
 
-                Logger.verbose(this, "upload():done");
+                log.Debug("UploadAsync():done");
             }
         }
 
         public async Task DownloadAsync(FileItem fileItem, String localName)
         {
-            Logger.info(this, "download():Start");
+            log.Debug("DownloadAsync():Start");
 
             if (fileItem.IsFolder)
             {
@@ -257,7 +261,7 @@ namespace Sbs20.Syncotron
                         await this.context.LocalFilesystem.WriteAsync(localFile.FullName, downloadStream, remoteFile.ClientModified);
                     }
 
-                    Logger.verbose(this, "download():done");
+                    log.Debug("DownloadAsync():done");
                 }
             }
         }
@@ -277,13 +281,13 @@ namespace Sbs20.Syncotron
 
             try
             {
-                Logger.info(this, "delete():Start");
+                log.Debug("DeleteAsync():Start");
                 await this.Client.Files.DeleteAsync(new DeleteArg(path));
-                Logger.verbose(this, "delete():done");
+                log.Debug("DeleteAsync():done");
             }
             catch
             {
-                Logger.info(this, "delete(" + path + "):fail");
+                log.Debug("DeleteAsync(" + path + "):fail");
             }
         }
 

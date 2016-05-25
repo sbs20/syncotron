@@ -1,4 +1,5 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -8,6 +9,7 @@ namespace Sbs20.Syncotron
 {
     public class Replicator : IDisposable
     {
+        private static readonly ILog log = LogManager.GetLogger(typeof(Replicator));
         private SyncActionListBuilder syncActionsBuilder;
         private IList<SyncAction> actions;
 
@@ -89,7 +91,7 @@ namespace Sbs20.Syncotron
 
         private async Task DoActionAsync(SyncAction action)
         {
-            Logger.info(this, "DoAction(" + action.Key + ")");
+            log.Info("DoAction(" + action.Key + ")");
             this.OnActionStart(action);
 
             switch (action.Type)
@@ -199,6 +201,7 @@ namespace Sbs20.Syncotron
             }
             catch (Exception ex)
             {
+                log.Error(ex);
                 this.OnException(ex);
             }
         }

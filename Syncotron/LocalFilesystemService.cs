@@ -1,4 +1,5 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -14,6 +15,7 @@ namespace Sbs20.Syncotron
     /// </summary>
     public class LocalFilesystemService : IFileItemProvider
     {
+        private static readonly ILog log = LogManager.GetLogger(typeof(LocalFilesystemService));
         private ReplicatorContext context;
 
         [Serializable]
@@ -100,6 +102,7 @@ namespace Sbs20.Syncotron
 
             Action<FileItem> internalAction = (fileItem) =>
             {
+                log.InfoFormat("ForEachAsync():{0}", fileItem.Path);
                 this.FileItemMergeFromIndex(fileItem);
 
                 // Store in scan
@@ -203,25 +206,35 @@ namespace Sbs20.Syncotron
 
         public void Certify(IEnumerable<SyncAction> actions)
         {
+            int errorCount = 0;
+
             // Check that all file pairs have local and remote version
             foreach (var action in actions)
             {
                 if (action.Local == null)
                 {
-                    throw new InvalidOperationException(action.Key + " has no local version. Cannot certify");
+                    log.Error(action.Key + " has no local version. Cannot certify");
+                    ++errorCount;
                 }
                 else if (action.Remote == null)
                 {
-                    throw new InvalidOperationException(action.Key + " has no remote version. Cannot certify");
+                    log.Error(action.Key + " has no remote version. Cannot certify");
+                    ++errorCount;
                 }
                 else if (action.Local.Size != action.Remote.Size)
                 {
-                    throw new InvalidOperationException(action.Key + " local and remote have different sizes. Cannot certify");
+                    log.Error(action.Key + " local and remote have different sizes. Cannot certify");
+                    ++errorCount;
                 }
                 else if (action.Local.ClientModified != action.Remote.ClientModified)
                 {
-                    Logger.warn(this, action.Key + " local and remote have different modification dates.");
+                    log.Info(action.Key + " local and remote have different modification dates.");
                 }
+            }
+
+            if (errorCount > 0)
+            {
+                throw new InvalidOperationException("Errors found. Cannot certify");
             }
 
             this.context.LocalStorage.BeginTransaction();

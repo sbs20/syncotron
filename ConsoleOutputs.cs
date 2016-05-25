@@ -101,7 +101,7 @@ namespace Sbs20
                 line = line.Substring(0, Console.WindowWidth);
             }
 
-            Console.WriteLine(line);
+            //Console.WriteLine(line);
         }
 
         public void Draw(Replicator replicator)

@@ -97,7 +97,6 @@
     <Compile Include="Syncotron\FileItem.cs" />
     <Compile Include="Syncotron\SyncAction.cs" />
     <Compile Include="Syncotron\ISyncActionTypeChooser.cs" />
-    <Compile Include="Syncotron\Logger.cs" />
     <Compile Include="Syncotron\MD5Hash.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -108,7 +107,9 @@
     <Compile Include="Syncotron\SettingsAppConfig.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="lib\readme.md" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
