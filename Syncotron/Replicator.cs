@@ -15,10 +15,10 @@ namespace Sbs20.Syncotron
         private SyncActionListBuilder syncActionsBuilder;
         private IList<SyncAction> actions;
 
-        public long ActionsCompleteCount { get; set; }
-        public ulong DownloadedBytes { get; set; }
-        public ulong UploadedBytes { get; set; }
-        public DateTime Start { get; set; }
+        public long ActionsCompleteCount { get; private set; }
+        public ulong DownloadedBytes { get; private set; }
+        public ulong UploadedBytes { get; private set; }
+        public DateTime Start { get; private set; }
 
         public event EventHandler<SyncAction> ActionStart;
         public event EventHandler<SyncAction> ActionComplete;

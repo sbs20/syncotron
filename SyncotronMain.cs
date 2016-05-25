@@ -1,9 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using log4net;
+using Sbs20.Common;
 using Sbs20.Extensions;
 using Sbs20.Syncotron;
-using log4net;
-using Sbs20.Common;
+using System;
+using System.Threading.Tasks;
 
 namespace Sbs20
 {
