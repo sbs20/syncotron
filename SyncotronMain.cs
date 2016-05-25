@@ -89,7 +89,6 @@ namespace Sbs20
 
                     replicator.AnalysisComplete += (s, e) =>
                     {
-                        log.InfoFormat("Current user: {0}", replicator.Context.CloudService.CurrentAccountEmail);
                         log.InfoFormat("Distinct files: {0}", replicator.DistinctFileCount);
                         log.InfoFormat("Local files: {0}", replicator.LocalFileCount);
                         log.InfoFormat("Remote files: {0}", replicator.RemoteFileCount);
@@ -99,11 +98,9 @@ namespace Sbs20
                     replicator.Complete += (s, e) =>
                     {
                         log.InfoFormat("Actions completed: {0}", replicator.ActionsCompleteCount);
-                        log.InfoFormat("Downloaded (mb): {0:0.00}", replicator.DownloadedMeg);
-                        log.InfoFormat("Uploaded (mb): {0:0.00}", replicator.UploadedMeg);
+                        log.InfoFormat("Download: {0:0.00}mb (rate: {1:0.00}mb/s)", replicator.DownloadedMeg, replicator.DownloadRate);
+                        log.InfoFormat("Upload: {0:0.00}mb (rate {1:0.00}mb/s)", replicator.UploadedMeg, replicator.UploadRate);
                         log.InfoFormat("Duration: {0}", replicator.Duration);
-                        log.InfoFormat("Download rate (mb/s): {0:0.00}", replicator.DownloadRate);
-                        log.InfoFormat("Uploaded rate (mb/s): {0:0.00}", replicator.UploadRate);
                     };
 
                     replicator.Exception += (s, e) =>
@@ -111,7 +108,7 @@ namespace Sbs20
                         log.Error(e);
                     };
 
-                    while (!context.CloudService.IsAuthorised)
+                    if (!context.CloudService.IsAuthorised)
                     {
                         Uri url = context.CloudService.StartAuthorisation();
                         Console.WriteLine("You have not yet authorised syncotron with your cloud service");
@@ -132,11 +129,20 @@ namespace Sbs20
                         }
                     }
 
+                    log.InfoFormat("Current user: {0}", replicator.Context.CloudService.CurrentAccountEmail);
+                    log.InfoFormat("Local path: {0}", replicator.Context.LocalPath);
+                    log.InfoFormat("Remote path: {0}", replicator.Context.RemotePath);
+
                     Task replicatorStart = replicator.StartAsync();
 
                     while (replicatorStart.Status != TaskStatus.RanToCompletion)
                     {
-                        Task.Delay(500).Wait();
+                        Task.Delay(200).Wait();
+
+                        if (replicator.Duration.TotalSeconds % 10 > 9.8)
+                        {
+                            log.InfoFormat("Scanned {0} local files; {1} remote files", replicator.LocalFileCount, replicator.RemoteFileCount);
+                        }
                     }
 
                     replicatorStart.Wait();
