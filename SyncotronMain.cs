@@ -80,6 +80,8 @@ namespace Sbs20
 
                 using (Replicator replicator = new Replicator(context))
                 {
+                    log.Info("Starting syncotron");
+
                     replicator.ActionComplete += (s, a) =>
                     {
                         log.Info(a.ToString() + " [" + FileSizeFormatter.Format(a.PrimaryItem.Size) + "]");
