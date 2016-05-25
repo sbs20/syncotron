@@ -282,3 +282,6 @@ $RECYCLE.BIN/
 
 # Secret config files
 Syncotron/Settings.cs
+
+# etc
+etc/*

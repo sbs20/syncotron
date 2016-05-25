@@ -2,6 +2,7 @@
 using Dropbox.Api.Files;
 using Dropbox.Api.Users;
 using log4net;
+using Sbs20.Syncotron.Diagnostics;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -84,10 +85,9 @@ namespace Sbs20.Syncotron
 
         public async Task<string> ForEachAsync(string path, bool recursive, bool deleted, Action<FileItem> action)
         {
+            const string logstem = "ForEachAsync():{0}";
             Action<Metadata> handleEntry = (entry) =>
             {
-                log.InfoFormat("ForEachAsync():{0}", entry.PathDisplay);
-
                 var item = FileItem.Create(entry);
                 if (item.Path != this.context.RemotePath)
                 {
@@ -95,8 +95,14 @@ namespace Sbs20.Syncotron
                 }
             };
 
-            ListFolderResult result = await this.Client.Files.ListFolderAsync(
-                new ListFolderArg(path, recursive, false, deleted));
+            var args0 = new ListFolderArg(path, recursive, false, deleted);
+            ListFolderResult result = await this.Client.Files.ListFolderAsync(args0);
+
+            if (log.IsDebugEnabled)
+            {
+                log.DebugFormat(logstem, "Request:" + Json.ToString(args0));
+                log.DebugFormat(logstem, "Result:" + Json.ToString(result));
+            }
 
             foreach (var entry in result.Entries)
             {
@@ -105,7 +111,14 @@ namespace Sbs20.Syncotron
 
             while (result.HasMore)
             {
-                result = await this.Client.Files.ListFolderContinueAsync(new ListFolderContinueArg(result.Cursor));
+                var args1 = new ListFolderContinueArg(result.Cursor);
+                result = await this.Client.Files.ListFolderContinueAsync(args1);
+
+                if (log.IsDebugEnabled)
+                {
+                    log.DebugFormat(logstem, "Request:" + Json.ToString(args1));
+                    log.DebugFormat(logstem, "Result:" + Json.ToString(result));
+                }
 
                 foreach (var entry in result.Entries)
                 {

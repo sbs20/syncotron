@@ -9,13 +9,22 @@ namespace Sbs20.Syncotron
 {
     public class Replicator : IDisposable
     {
+        private const double BytesPerMeg = 1 << 20;
+
         private static readonly ILog log = LogManager.GetLogger(typeof(Replicator));
         private SyncActionListBuilder syncActionsBuilder;
         private IList<SyncAction> actions;
 
+        public long ActionsCompleteCount { get; set; }
+        public ulong DownloadedBytes { get; set; }
+        public ulong UploadedBytes { get; set; }
+        public DateTime Start { get; set; }
+
         public event EventHandler<SyncAction> ActionStart;
         public event EventHandler<SyncAction> ActionComplete;
         public event EventHandler<Exception> Exception;
+        public event EventHandler<EventArgs> AnalysisComplete;
+        public event EventHandler<EventArgs> Complete;
 
         public ReplicatorContext Context { get; private set; }
 
@@ -55,6 +64,17 @@ namespace Sbs20.Syncotron
 
         private void OnActionComplete(SyncAction action)
         {
+            if (action.Type == SyncActionType.Download)
+            {
+                this.DownloadedBytes += action.Remote.Size;
+            }
+            else if (action.Type == SyncActionType.Upload)
+            {
+                this.UploadedBytes += action.Local.Size;
+            }
+
+            this.ActionsCompleteCount++;
+
             if (this.ActionComplete != null)
             {
                 this.ActionComplete(this, action);
@@ -66,6 +86,22 @@ namespace Sbs20.Syncotron
             if (this.Exception != null)
             {
                 this.Exception(this, exception);
+            }
+        }
+
+        private void OnAnalysisComplete()
+        {
+            if (this.AnalysisComplete!= null)
+            {
+                this.AnalysisComplete(this, null);
+            }
+        }
+
+        private void OnComplete()
+        {
+            if (this.Complete != null)
+            {
+                this.Complete(this, null);
             }
         }
 
@@ -89,9 +125,34 @@ namespace Sbs20.Syncotron
             get { return this.actions == null ? 0 : this.actions.Count(); }
         }
 
+        public TimeSpan Duration
+        {
+            get { return DateTime.Now - this.Start; }
+        }
+
+        public double DownloadedMeg
+        {
+            get { return this.DownloadedBytes / BytesPerMeg; }
+        }
+
+        public double UploadedMeg
+        {
+            get { return this.UploadedBytes / BytesPerMeg; }
+        }
+
+        public double DownloadRate
+        {
+            get { return this.DownloadedMeg / (double)this.Duration.TotalSeconds; }
+        }
+
+        public double UploadRate
+        {
+            get { return this.UploadedMeg / (double)this.Duration.TotalSeconds; }
+        }
+
         private async Task DoActionAsync(SyncAction action)
         {
-            log.Info("DoAction(" + action.Key + ")");
+            log.Debug("DoAction(" + action.Key + ")");
             this.OnActionStart(action);
 
             switch (action.Type)
@@ -164,6 +225,8 @@ namespace Sbs20.Syncotron
         {
             try
             {
+                this.Start = DateTime.Now;
+
                 switch (this.Context.CommandType)
                 {
                     case CommandType.Reset:
@@ -174,6 +237,7 @@ namespace Sbs20.Syncotron
 
                     case CommandType.AnalysisOnly:
                         await this.PopulateActionsListAsync();
+                        this.OnAnalysisComplete();
                         break;
 
                     case CommandType.Certify:
@@ -181,6 +245,7 @@ namespace Sbs20.Syncotron
                         this.Context.LocalCursor = null;
                         this.Context.RemoteCursor = null;
                         await this.PopulateActionsListAsync();
+                        this.OnAnalysisComplete();
                         this.Context.LocalFilesystem.Certify(this.syncActionsBuilder.ActionDictionary.Values);
                         this.Context.LocalStorage.SettingsWrite("IsCertified", true);
                         this.Context.LocalCursor = this.syncActionsBuilder.LocalCursor;
@@ -191,17 +256,18 @@ namespace Sbs20.Syncotron
                     case CommandType.Fullsync:
                     case CommandType.Autosync:
                         await this.PopulateActionsListAsync();
+                        this.OnAnalysisComplete();
                         await this.ProcessActionsAsync();
                         this.Context.LocalStorage.SettingsWrite("IsCertified", true);
                         this.Context.LocalCursor = this.syncActionsBuilder.LocalCursor;
                         this.Context.RemoteCursor = this.syncActionsBuilder.RemoteCursor;
                         this.Context.LocalStorage.SettingsWrite("LastSync", DateTime.Now);
+                        this.OnComplete();
                         break;
                 }
             }
             catch (Exception ex)
             {
-                log.Error(ex);
                 this.OnException(ex);
             }
         }

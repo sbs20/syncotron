@@ -75,12 +75,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\FileSizeFormatter.cs" />
     <Compile Include="ConsoleHelper.cs" />
-    <Compile Include="ConsoleOutputs.cs" />
     <Compile Include="Data\DbController.cs" />
     <Compile Include="Data\Enumerations.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />
     <Compile Include="Common\Base32Encoding.cs" />
+    <Compile Include="Syncotron\Diagnostics\Json.cs" />
+    <Compile Include="Syncotron\Diagnostics\Serialiserabler.cs" />
     <Compile Include="Syncotron\SyncActionTypeChooserMirrorDown.cs" />
     <Compile Include="Syncotron\SyncActionTypeChooserMirrorUp.cs" />
     <Compile Include="Syncotron\SyncActionTypeChooserTwoWay.cs" />
@@ -98,7 +100,7 @@
     <Compile Include="Syncotron\SyncAction.cs" />
     <Compile Include="Syncotron\ISyncActionTypeChooser.cs" />
     <Compile Include="Syncotron\MD5Hash.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="SyncotronMain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Syncotron\ReplicatorContext.cs" />
     <Compile Include="Syncotron\Replicator.cs" />

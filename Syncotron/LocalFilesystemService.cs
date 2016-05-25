@@ -102,7 +102,7 @@ namespace Sbs20.Syncotron
 
             Action<FileItem> internalAction = (fileItem) =>
             {
-                log.InfoFormat("ForEachAsync():{0}", fileItem.Path);
+                log.DebugFormat("ForEachAsync():{0}", fileItem.Path);
                 this.FileItemMergeFromIndex(fileItem);
 
                 // Store in scan

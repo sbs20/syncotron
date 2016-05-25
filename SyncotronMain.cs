@@ -2,11 +2,15 @@
 using System.Threading.Tasks;
 using Sbs20.Extensions;
 using Sbs20.Syncotron;
+using log4net;
+using Sbs20.Common;
 
 namespace Sbs20
 {
-    class Program
+    class SyncotronMain
     {
+        private static readonly ILog log = LogManager.GetLogger(typeof(SyncotronMain));
+
         private static ReplicatorContext ToReplicatorContext(string[] args)
         {
             var arguments = ConsoleHelper.ReadArguments(args);
@@ -76,11 +80,34 @@ namespace Sbs20
 
                 using (Replicator replicator = new Replicator(context))
                 {
-                    var outputs = new ConsoleOutputs();
+                    replicator.ActionComplete += (s, a) =>
+                    {
+                        log.Info(a.ToString() + " [" + FileSizeFormatter.Format(a.PrimaryItem.Size) + "]");
+                    };
 
-                    replicator.ActionStart += outputs.ActionStartHandler;
-                    replicator.ActionComplete += outputs.ActionCompleteHandler;
-                    replicator.Exception += outputs.ExceptionHandler;
+                    replicator.AnalysisComplete += (s, e) =>
+                    {
+                        log.InfoFormat("Current user: {0}", replicator.Context.CloudService.CurrentAccountEmail);
+                        log.InfoFormat("Distinct files: {0}", replicator.DistinctFileCount);
+                        log.InfoFormat("Local files: {0}", replicator.LocalFileCount);
+                        log.InfoFormat("Remote files: {0}", replicator.RemoteFileCount);
+                        log.InfoFormat("Actions found: {0}", replicator.ActionCount);
+                    };
+
+                    replicator.Complete += (s, e) =>
+                    {
+                        log.InfoFormat("Actions completed: {0}", replicator.ActionsCompleteCount);
+                        log.InfoFormat("Downloaded (mb): {0:0.00}", replicator.DownloadedMeg);
+                        log.InfoFormat("Uploaded (mb): {0:0.00}", replicator.UploadedMeg);
+                        log.InfoFormat("Duration: {0}", replicator.Duration);
+                        log.InfoFormat("Download rate (mb/s): {0:0.00}", replicator.DownloadRate);
+                        log.InfoFormat("Uploaded rate (mb/s): {0:0.00}", replicator.UploadRate);
+                    };
+
+                    replicator.Exception += (s, e) =>
+                    {
+                        log.Error(e);
+                    };
 
                     while (!context.CloudService.IsAuthorised)
                     {
@@ -98,23 +125,19 @@ namespace Sbs20
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex);
-                            Console.ReadLine();
+                            log.Error(ex);
+                            return;
                         }
                     }
-
-                    Console.Clear();
 
                     Task replicatorStart = replicator.StartAsync();
 
                     while (replicatorStart.Status != TaskStatus.RanToCompletion)
                     {
-                        Task.Delay(200).Wait();
-                        outputs.Draw(replicator);
+                        Task.Delay(500).Wait();
                     }
 
                     replicatorStart.Wait();
-                    outputs.Draw(replicator);
                 }
 
                 if (context.IsDebug)
@@ -125,7 +148,7 @@ namespace Sbs20
             }
             catch (InvalidOperationException ex)
             {
-                Console.WriteLine(ex.Message);
+                log.Error(ex);
             }
         }
     }
