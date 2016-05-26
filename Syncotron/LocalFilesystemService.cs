@@ -228,7 +228,7 @@ namespace Sbs20.Syncotron
             localFile.Refresh();
         }
 
-        public void Certify(IEnumerable<SyncAction> actions)
+        public void Certify(IEnumerable<SyncAction> actions, bool strict)
         {
             int errorCount = 0;
 
@@ -237,13 +237,19 @@ namespace Sbs20.Syncotron
             {
                 if (action.Local == null)
                 {
-                    log.Error(action.Key + " has no local version. Cannot certify");
-                    ++errorCount;
+                    if (strict)
+                    {
+                        log.Error(action.Key + " has no local version. Cannot certify");
+                        ++errorCount;
+                    }
                 }
                 else if (action.Remote == null)
                 {
-                    log.Error(action.Key + " has no remote version. Cannot certify");
-                    ++errorCount;
+                    if (strict)
+                    {
+                        log.Error(action.Key + " has no remote version. Cannot certify");
+                        ++errorCount;
+                    }
                 }
                 else if (action.Local.Size != action.Remote.Size)
                 {
@@ -266,7 +272,10 @@ namespace Sbs20.Syncotron
 
             foreach (var action in actions)
             {
-                this.context.LocalStorage.IndexUpdate(action.Local, action.Local.Hash, action.Remote.ServerRev);
+                if (action.Local != null && action.Remote != null)
+                {
+                    this.context.LocalStorage.IndexUpdate(action.Local, action.Local.Hash, action.Remote.ServerRev);
+                }
             }
 
             this.context.LocalStorage.EndTransaction();

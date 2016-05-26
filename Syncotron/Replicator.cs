@@ -246,7 +246,7 @@ namespace Sbs20.Syncotron
                         this.Context.RemoteCursor = null;
                         await this.PopulateActionsListAsync();
                         this.OnAnalysisComplete();
-                        this.Context.LocalFilesystem.Certify(this.syncActionsBuilder.ActionDictionary.Values);
+                        this.Context.LocalFilesystem.Certify(this.syncActionsBuilder.ActionDictionary.Values, true);
                         this.Context.LocalStorage.SettingsWrite("IsCertified", true);
                         this.Context.LocalCursor = this.syncActionsBuilder.LocalCursor;
                         this.Context.RemoteCursor = this.syncActionsBuilder.RemoteCursor;
