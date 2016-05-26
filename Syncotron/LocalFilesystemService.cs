@@ -17,6 +17,7 @@ namespace Sbs20.Syncotron
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(LocalFilesystemService));
         private ReplicatorContext context;
+        private IHashProvider hashProvider;
 
         [Serializable]
         private class Cursor
@@ -58,6 +59,29 @@ namespace Sbs20.Syncotron
             this.context = context;
         }
 
+        public IHashProvider HashProvider
+        {
+            get
+            {
+                if (this.hashProvider == null)
+                {
+                    switch (this.context.HashProviderType)
+                    {
+                        case HashProviderType.MD5:
+                            this.hashProvider = new MD5Hash();
+                            break;
+
+                        case HashProviderType.DateTimeAndSize:
+                        default:
+                            this.hashProvider = new DateTimeSizeHash();
+                            break;
+                    }
+                }
+
+                return this.hashProvider;
+            }
+        }
+
         public FileSystemInfo ToFileSystemInfo(string path)
         {
             DirectoryInfo dir = new DirectoryInfo(path);
@@ -70,7 +94,7 @@ namespace Sbs20.Syncotron
             var fsi = this.ToFileSystemInfo(path);
             if (fsi is FileInfo)
             {
-                return FileItem.Create(fsi as FileInfo, this.context.HashProvider);
+                return FileItem.Create(fsi as FileInfo, this.HashProvider);
             }
 
             return FileItem.Create(fsi as DirectoryInfo);
@@ -126,7 +150,7 @@ namespace Sbs20.Syncotron
 
                 foreach (var f in root.EnumerateFiles("*", option))
                 {
-                    var item = FileItem.Create(f, this.context.HashProvider);
+                    var item = FileItem.Create(f, this.HashProvider);
                     internalAction(item);
                 }
 

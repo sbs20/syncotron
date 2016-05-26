@@ -14,6 +14,7 @@ namespace Sbs20.Syncotron
         public ReplicatorContext Context { get; private set; }
         public Dictionary<string, SyncAction> ActionDictionary { get; private set; }
         public IList<SyncAction> Actions { get; private set; }
+        public ISyncActionTypeChooser TypeChooser { get; private set; }
 
         public string RemoteCursor { get; private set; }
         public string LocalCursor { get; private set; }
@@ -23,6 +24,25 @@ namespace Sbs20.Syncotron
             this.Context = context;
             this.ActionDictionary = new Dictionary<string, SyncAction>();
             this.Actions = new List<SyncAction>();
+            this.TypeChooser = this.CreateSyncActionTypeChooser();
+        }
+
+        private ISyncActionTypeChooser CreateSyncActionTypeChooser()
+        {
+            switch (this.Context.SyncDirection)
+            {
+                case SyncDirection.TwoWay:
+                    return new SyncActionTypeChooserTwoWay(this.Context);
+
+                case SyncDirection.MirrorDown:
+                    return new SyncActionTypeChooserMirrorDown();
+
+                case SyncDirection.MirrorUp:
+                    return new SyncActionTypeChooserMirrorUp();
+
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         private string Key(FileItem file)
@@ -212,7 +232,7 @@ namespace Sbs20.Syncotron
 
             foreach (var action in this.ActionDictionary.Values)
             {
-                SyncActionType type = this.Context.SyncActionTypeChooser.Choose(action);
+                SyncActionType type = this.TypeChooser.Choose(action);
                 if (type != SyncActionType.None)
                 {
                     action.Type = type;

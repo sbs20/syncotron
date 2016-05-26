@@ -8,9 +8,7 @@ namespace Sbs20.Syncotron
         private LocalStorage localStorage;
         private LocalFilesystemService localFilesystem;
         private ICloudService cloudService;
-        private IHashProvider hashProvider;
         public ISettings Settings { get; private set; }
-        public ISyncActionTypeChooser SyncActionTypeChooser { get; private set; }
 
         public string LocalPath { get; set; }
         public string RemotePath { get; set; }
@@ -37,9 +35,6 @@ namespace Sbs20.Syncotron
             this.Exclusions = new List<string>();
             this.IgnoreCertificateErrors = false;
             this.HashProviderType = HashProviderType.DateTimeAndSize;
-
-            // Create helpers
-            this.SyncActionTypeChooser = this.CreateSyncActionTypeChooser();
         }
 
         public string FileSuffix()
@@ -90,24 +85,6 @@ namespace Sbs20.Syncotron
             this.LocalStorage.SettingsWrite("ConflictStrategy", this.ConflictStrategy);
         }
 
-        private ISyncActionTypeChooser CreateSyncActionTypeChooser()
-        {
-            switch (this.SyncDirection)
-            {
-                case SyncDirection.TwoWay:
-                    return new SyncActionTypeChooserTwoWay(this);
-
-                case SyncDirection.MirrorDown:
-                    return new SyncActionTypeChooserMirrorDown();
-
-                case SyncDirection.MirrorUp:
-                    return new SyncActionTypeChooserMirrorUp();
-
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-
         private static string AsUnixPath(string path)
         {
             return path == null ? null : path.Replace("\\", "/");
@@ -148,29 +125,6 @@ namespace Sbs20.Syncotron
             return file.Source == FileService.Local ?
                 this.ToRemotePath(file) :
                 this.ToLocalPath(file);
-        }
-
-        public IHashProvider HashProvider
-        {
-            get
-            {
-                if (this.hashProvider == null)
-                {
-                    switch (this.HashProviderType)
-                    {
-                        case HashProviderType.MD5:
-                            this.hashProvider = new MD5Hash();
-                            break;
-
-                        case HashProviderType.DateTimeAndSize:
-                        default:
-                            this.hashProvider = new DateTimeSizeHash();
-                            break;
-                    }
-                }
-
-                return this.hashProvider;
-            }
         }
 
         public LocalFilesystemService LocalFilesystem
