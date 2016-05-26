@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Sbs20
+namespace Sbs20.Common
 {
     public class ConsoleHelper
     {

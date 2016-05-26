@@ -62,7 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\FileSizeFormatter.cs" />
-    <Compile Include="ConsoleHelper.cs" />
+    <Compile Include="Common\ConsoleHelper.cs" />
     <Compile Include="Data\DbController.cs" />
     <Compile Include="Data\Enumerations.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />
