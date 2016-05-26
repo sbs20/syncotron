@@ -98,6 +98,7 @@ namespace Sbs20.Syncotron
             var args0 = new ListFolderArg(path, recursive, false, deleted);
             ListFolderResult result = await this.Client.Files.ListFolderAsync(args0);
 
+            // These logging calls are very expensive so check we're enabled first
             if (log.IsDebugEnabled)
             {
                 log.DebugFormat(logstem, "Request:" + Json.ToString(args0));

@@ -1,7 +1,6 @@
 ﻿using Dropbox.Api.Files;
 using System;
 using System.IO;
-using System.Security.Cryptography;
 
 namespace Sbs20.Syncotron
 {
