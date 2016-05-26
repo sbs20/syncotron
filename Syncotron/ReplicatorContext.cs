@@ -42,7 +42,7 @@ namespace Sbs20.Syncotron
             this.SyncActionTypeChooser = this.CreateSyncActionTypeChooser();
         }
 
-        public string LocalStorageFilename()
+        public string FileSuffix()
         {
             var key = this.RemoteService.ToString() + ":"
                 + AsUnixPath(this.LocalPath.ToLowerInvariant()) + ":"
@@ -50,7 +50,12 @@ namespace Sbs20.Syncotron
 
             var bytes = new MD5Hash().HashBytes(key);
             var hash = Common.Base32Encoding.ToString(bytes).ToLowerInvariant().Replace("=", "$");
-            return string.Format("syncotron_{0}.db", hash);
+            return hash;
+        }
+
+        public string LocalStorageFilename()
+        {
+            return string.Format("syncotron_{0}.db", this.FileSuffix());
         }
 
         public LocalStorage LocalStorage
@@ -68,7 +73,7 @@ namespace Sbs20.Syncotron
 
         public void CleanAndPersist()
         {
-            this.LocalPath =  AsDirectoryPath(this.LocalPath);
+            this.LocalPath = AsDirectoryPath(this.LocalPath);
             this.RemotePath = AsDirectoryPath(this.RemotePath);
 
             this.LocalStorage.SettingsWrite("LocalPath", this.LocalPath);
@@ -151,13 +156,16 @@ namespace Sbs20.Syncotron
             {
                 if (this.hashProvider == null)
                 {
-                    if (this.HashProviderType == HashProviderType.DateTimeAndSize)
+                    switch (this.HashProviderType)
                     {
-                        this.hashProvider = new DateTimeSizeHash();
-                    }
-                    else
-                    {
-                        this.hashProvider = new MD5Hash();
+                        case HashProviderType.MD5:
+                            this.hashProvider = new MD5Hash();
+                            break;
+
+                        case HashProviderType.DateTimeAndSize:
+                        default:
+                            this.hashProvider = new DateTimeSizeHash();
+                            break;
                     }
                 }
 

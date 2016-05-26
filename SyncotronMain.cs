@@ -78,9 +78,13 @@ namespace Sbs20
             {
                 var context = ToReplicatorContext(args);
 
+                GlobalContext.Properties["LogSuffix"] = context.FileSuffix();
+                log4net.Config.XmlConfigurator.Configure();
+
                 using (Replicator replicator = new Replicator(context))
                 {
                     log.Info("Starting syncotron");
+                    log.InfoFormat("Current log / db: syncotron_{0}.xxx", context.FileSuffix());
 
                     replicator.ActionComplete += (s, a) =>
                     {
