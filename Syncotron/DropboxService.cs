@@ -326,7 +326,7 @@ namespace Sbs20.Syncotron
                 if (this.currentAccount == null)
                 {
                     // This is a one off, so we're going to block
-                    Task<FullAccount> task = this.client.Users.GetCurrentAccountAsync();
+                    Task<FullAccount> task = this.Client.Users.GetCurrentAccountAsync();
                     task.Wait();
                     this.currentAccount = task.Result;
                 }
