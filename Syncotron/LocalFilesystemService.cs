@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 
@@ -18,6 +19,7 @@ namespace Sbs20.Syncotron
         private static readonly ILog log = LogManager.GetLogger(typeof(LocalFilesystemService));
         private ReplicatorContext context;
         private IHashProvider hashProvider;
+        private IDictionary<string, FileItem> index;
 
         [Serializable]
         private class Cursor
@@ -102,11 +104,25 @@ namespace Sbs20.Syncotron
 
         private void FileItemMergeFromIndex(FileItem fileItem)
         {
-            var existing = this.context.LocalStorage.IndexSelect(fileItem);
-            if (existing != null)
+            if (this.index == null)
             {
-                fileItem.ServerRev = existing.ServerRev;
+                // Selecting item by item is way too slow. Select everything
+                // into memory and go from there.
+                log.Info("Started building local index");
+                var files = this.context.LocalStorage.IndexSelect();
+                this.index = files.ToDictionary(i => i.Path.ToLower(), i => i);
+                log.Info("Finished building local index");
             }
+
+            try
+            {
+                var existing = this.index[fileItem.Path.ToLower()];
+                if (existing.Hash == fileItem.Hash)
+                {
+                    fileItem.ServerRev = existing.ServerRev;
+                }
+            }
+            catch { }
         }
 
         public Task DeleteAsync(string path)

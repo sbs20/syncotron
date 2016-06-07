@@ -197,11 +197,17 @@ namespace Sbs20.Syncotron
 
         public FileItem IndexSelect(FileItem keyFile)
         {
-            string sql = string.Format("select * from indx where Path = {0} and LocalRev={1};",
-                DbController.ToParameter(keyFile.Path),
-                DbController.ToParameter(keyFile.Hash));
+            string sql = string.Format("select * from indx where Path = {0};",
+                DbController.ToParameter(keyFile.Path));
 
-            return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r)).FirstOrDefault();
+            var indexFile = this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r)).FirstOrDefault();
+            return indexFile.Hash == keyFile.Hash ? indexFile : null;
+        }
+
+        public IEnumerable<FileItem> IndexSelect()
+        {
+            string sql = "select * from indx;";
+            return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r));
         }
 
         public IEnumerable<FileItem> Changes(string path, bool recursive, bool deleted)
