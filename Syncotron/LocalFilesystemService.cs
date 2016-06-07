@@ -253,12 +253,15 @@ namespace Sbs20.Syncotron
                 }
                 else if (action.Local.Size != action.Remote.Size)
                 {
-                    log.Error(action.Key + " local and remote have different sizes. Cannot certify");
-                    ++errorCount;
+                    if (strict)
+                    {
+                        log.Error(action.Key + " local and remote have different sizes. Cannot certify");
+                        ++errorCount;
+                    }
                 }
                 else if (action.Local.ClientModified != action.Remote.ClientModified)
                 {
-                    log.Info(action.Key + " local and remote have different modification dates.");
+                    log.Debug(action.Key + " local and remote have different modification dates.");
                 }
             }
 
@@ -270,14 +273,17 @@ namespace Sbs20.Syncotron
             this.context.LocalStorage.BeginTransaction();
             this.context.LocalStorage.UpdateIndexFromScan();
 
+            int certifiableCount = 0;
             foreach (var action in actions)
             {
-                if (action.Local != null && action.Remote != null)
+                if (action.Local != null && action.Remote != null && action.Local.Size == action.Remote.Size)
                 {
                     this.context.LocalStorage.IndexUpdate(action.Local, action.Local.Hash, action.Remote.ServerRev);
+                    ++certifiableCount;
                 }
             }
 
+            log.InfoFormat("Certified {0} matches", certifiableCount);
             this.context.LocalStorage.EndTransaction();
         }
 

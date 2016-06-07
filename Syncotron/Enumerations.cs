@@ -19,7 +19,8 @@
     public enum CommandType
     {
         AnalysisOnly,
-        Certify,
+        CertifyStrict,
+        CertifyAndSync,
         Autosync,
         Fullsync,
         Reset

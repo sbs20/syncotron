@@ -240,14 +240,21 @@ namespace Sbs20.Syncotron
                         this.OnAnalysisComplete();
                         break;
 
-                    case CommandType.Certify:
+                    case CommandType.CertifyAndSync:
+                    case CommandType.CertifyStrict:
+                        bool isStrict = this.Context.CommandType == CommandType.CertifyStrict;
                         this.Context.LocalStorage.SettingsWrite("IsCertified", false);
                         this.Context.LocalCursor = null;
                         this.Context.RemoteCursor = null;
                         await this.PopulateActionsListAsync();
                         this.OnAnalysisComplete();
-                        this.Context.LocalFilesystem.Certify(this.syncActionsBuilder.ActionDictionary.Values, true);
+                        this.Context.LocalFilesystem.Certify(this.syncActionsBuilder.ActionDictionary.Values, isStrict);
                         this.Context.LocalStorage.SettingsWrite("IsCertified", true);
+                        if (this.Context.CommandType == CommandType.CertifyAndSync)
+                        {
+                            await this.ProcessActionsAsync();
+                        }
+
                         this.Context.LocalCursor = this.syncActionsBuilder.LocalCursor;
                         this.Context.RemoteCursor = this.syncActionsBuilder.RemoteCursor;
                         this.Context.LocalStorage.SettingsWrite("LastSync", DateTime.Now);
