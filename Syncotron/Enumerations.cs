@@ -20,7 +20,7 @@
     {
         AnalysisOnly,
         CertifyStrict,
-        CertifyAndSync,
+        CertifyLiberal,
         Autosync,
         Fullsync,
         Reset

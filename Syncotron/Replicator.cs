@@ -142,12 +142,12 @@ namespace Sbs20.Syncotron
 
         public double DownloadRate
         {
-            get { return this.DownloadedMeg / (double)this.Duration.TotalSeconds; }
+            get { return this.DownloadedMeg / this.Duration.TotalSeconds; }
         }
 
         public double UploadRate
         {
-            get { return this.UploadedMeg / (double)this.Duration.TotalSeconds; }
+            get { return this.UploadedMeg / this.Duration.TotalSeconds; }
         }
 
         private async Task DoActionAsync(SyncAction action)
@@ -189,32 +189,58 @@ namespace Sbs20.Syncotron
         private async Task PopulateActionsListAsync()
         {
             this.syncActionsBuilder = new SyncActionListBuilder(this.Context);
-            await this.syncActionsBuilder.BuildAsync();
+            Task task = this.syncActionsBuilder.BuildAsync();
+
+            while (task.Status != TaskStatus.RanToCompletion)
+            {
+                Task.Delay(5000).Wait();
+                log.InfoFormat("Scanned {0} local files; {1} remote files", this.LocalFileCount, this.RemoteFileCount);
+            }
+
+            await task;
             this.actions = this.syncActionsBuilder.Actions;
         }
 
         private async Task ProcessActionsAsync()
         {
             List<Task> tasks = new List<Task>();
-            bool abort = false;
             foreach (var action in this.actions)
             {
+                bool abort = false;
                 Task task = this.DoActionAsync(action);
                 tasks.Add(task);
 
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                task.ContinueWith(t => tasks.Remove(t), TaskContinuationOptions.OnlyOnRanToCompletion);
-                task.ContinueWith(t => abort = true, TaskContinuationOptions.OnlyOnFaulted);
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-
-                if (abort)
-                {
-                    break;
-                }
-
-                if (this.Context.ProcessingMode == ProcessingMode.Serial || tasks.Count > this.Context.MaximumConcurrency)
+                if (this.Context.ProcessingMode == ProcessingMode.Serial)
                 {
                     await task;
+                }
+                else
+                {
+                    while (tasks.Count > this.Context.MaximumConcurrency)
+                    {
+                        await Task.Delay(100);
+                        int index = 0;
+                        while (index < tasks.Count)
+                        {
+                            var t = tasks[index];
+                            if (t.IsCompleted)
+                            {
+                                tasks.Remove(t);
+                                index--;
+                            }
+                            else if (t.IsFaulted)
+                            {
+                                abort = true;
+                                break;
+                            }
+
+                            index++;
+                        }
+
+                        if (abort) break;
+                    }
+
+                    if (abort) break;
                 }
             }
 
@@ -240,7 +266,7 @@ namespace Sbs20.Syncotron
                         this.OnAnalysisComplete();
                         break;
 
-                    case CommandType.CertifyAndSync:
+                    case CommandType.CertifyLiberal:
                     case CommandType.CertifyStrict:
                         bool isStrict = this.Context.CommandType == CommandType.CertifyStrict;
                         this.Context.LocalStorage.SettingsWrite("IsCertified", false);
@@ -250,14 +276,14 @@ namespace Sbs20.Syncotron
                         this.OnAnalysisComplete();
                         this.Context.LocalFilesystem.Certify(this.syncActionsBuilder.ActionDictionary.Values, isStrict);
                         this.Context.LocalStorage.SettingsWrite("IsCertified", true);
-                        if (this.Context.CommandType == CommandType.CertifyAndSync)
+
+                        if (this.Context.CommandType == CommandType.CertifyStrict)
                         {
-                            await this.ProcessActionsAsync();
+                            this.Context.LocalCursor = this.syncActionsBuilder.LocalCursor;
+                            this.Context.RemoteCursor = this.syncActionsBuilder.RemoteCursor;
+                            this.Context.LocalStorage.SettingsWrite("LastSync", DateTime.Now);
                         }
 
-                        this.Context.LocalCursor = this.syncActionsBuilder.LocalCursor;
-                        this.Context.RemoteCursor = this.syncActionsBuilder.RemoteCursor;
-                        this.Context.LocalStorage.SettingsWrite("LastSync", DateTime.Now);
                         break;
 
                     case CommandType.Fullsync:

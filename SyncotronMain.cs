@@ -87,9 +87,14 @@ namespace Sbs20
                     log.InfoFormat("Current log / db: syncotron_{0}.xxx", context.FileSuffix());
                     log.InfoFormat("CommandType: {0}", context.CommandType.ToString());
 
+                    replicator.ActionStart += (s, a) =>
+                    {
+                        log.Info(a.ToString() + " [Start]");
+                    };
+
                     replicator.ActionComplete += (s, a) =>
                     {
-                        log.Info(a.ToString() + " [" + FileSizeFormatter.Format(a.PrimaryItem.Size) + "]");
+                        log.Info(a.ToString() + " [Complete: " + FileSizeFormatter.Format(a.PrimaryItem.Size) + "]");
                     };
 
                     replicator.AnalysisComplete += (s, e) =>
@@ -139,17 +144,6 @@ namespace Sbs20
                     log.InfoFormat("Remote path: {0}", replicator.Context.RemotePath);
 
                     Task replicatorStart = replicator.StartAsync();
-
-                    while (replicatorStart.Status != TaskStatus.RanToCompletion)
-                    {
-                        Task.Delay(200).Wait();
-
-                        if (replicator.Duration.TotalSeconds % 10 > 9.8)
-                        {
-                            log.InfoFormat("Scanned {0} local files; {1} remote files", replicator.LocalFileCount, replicator.RemoteFileCount);
-                        }
-                    }
-
                     replicatorStart.Wait();
                 }
 

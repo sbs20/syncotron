@@ -23,10 +23,13 @@ namespace Sbs20.Syncotron
             this.StructureCreate();
         }
 
-        private void StructureCreate()
+        private void ScanTableDrop()
         {
             this.dbController.ExecuteNonQuery(@"drop table if exists scan;");
+        }
 
+        private void ScanTableCreate()
+        {
             this.dbController.ExecuteNonQuery(@"create table if not exists scan (
                     Path nvarchar(1024) collate nocase,
                     LocalRev varchar(64),
@@ -36,7 +39,15 @@ namespace Sbs20.Syncotron
                     LastModified varchar(19),
                     ClientModified varchar(19)
                 );");
+        }
 
+        private void IndexTableDrop()
+        {
+            this.dbController.ExecuteNonQuery(@"drop table if exists indx;");
+        }
+
+        private void IndexTableCreate()
+        {
             this.dbController.ExecuteNonQuery(@"create table if not exists indx (
                     Path nvarchar(1024) collate nocase,
                     LocalRev varchar(64),
@@ -46,11 +57,27 @@ namespace Sbs20.Syncotron
                     LastModified varchar(19),
                     ClientModified varchar(19)
                 );");
+        }
 
+        private void IndexTableIndexCreate()
+        {
+            this.dbController.ExecuteNonQuery(@"create index if not exists ixpath on indx(Path);");
+        }
+
+        private void SettingsTableCreate()
+        {
             this.dbController.ExecuteNonQuery(@"create table if not exists settings (
                     Key varchar(32),
                     Value varchar(2048)
                 );");
+        }
+
+        private void StructureCreate()
+        {
+            this.ScanTableDrop();
+            this.ScanTableCreate();
+            this.IndexTableCreate();
+            this.SettingsTableCreate();
         }
 
         public T SettingsRead<T>(string key)
@@ -97,8 +124,11 @@ namespace Sbs20.Syncotron
 
         public void UpdateIndexFromScan()
         {
-            string sql = "delete from indx; insert into indx select * from scan;";
+            this.IndexTableDrop();
+            this.IndexTableCreate();
+            string sql = "insert into indx select * from scan;";
             this.dbController.ExecuteNonQuery(sql);
+            this.IndexTableIndexCreate();
         }
 
         private static FileItem ToFileItem(DataRow r)

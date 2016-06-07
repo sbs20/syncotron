@@ -272,6 +272,9 @@ namespace Sbs20.Syncotron
 
             this.context.LocalStorage.BeginTransaction();
             this.context.LocalStorage.UpdateIndexFromScan();
+            this.context.LocalStorage.EndTransaction();
+
+            this.context.LocalStorage.BeginTransaction();
 
             int certifiableCount = 0;
             foreach (var action in actions)
@@ -279,7 +282,12 @@ namespace Sbs20.Syncotron
                 if (action.Local != null && action.Remote != null && action.Local.Size == action.Remote.Size)
                 {
                     this.context.LocalStorage.IndexUpdate(action.Local, action.Local.Hash, action.Remote.ServerRev);
+                    action.Local.ServerRev = action.Remote.ServerRev;
                     ++certifiableCount;
+                    if (certifiableCount % 1024 == 0)
+                    {
+                        log.InfoFormat("Certified {0} matches", certifiableCount);
+                    }
                 }
             }
 
