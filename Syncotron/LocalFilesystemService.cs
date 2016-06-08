@@ -218,15 +218,11 @@ namespace Sbs20.Syncotron
 
         public async Task WriteAsync(string path, Stream stream, DateTime lastModified)
         {
-            var localFile = new FileInfo(path);
+            const string suffix = "-syncotron-tmp";
+            string temp = path + suffix;
 
-            // We need to wipe out the existing file
-            if (localFile.Exists)
-            {
-                localFile.Delete();
-            }
-
-            using (Stream localStream = localFile.OpenWrite())
+            var tempFile = new FileInfo(temp);
+            using (Stream localStream = tempFile.OpenWrite())
             {
                 byte[] buffer = new byte[1 << 16];
                 int read;
@@ -241,13 +237,21 @@ namespace Sbs20.Syncotron
             {
                 try
                 {
-                    localFile.LastWriteTimeUtc = lastModified;
+                    tempFile.LastWriteTimeUtc = lastModified;
                     success = true;
                 }
                 catch { await Task.Delay(50); }
             }
 
-            localFile.Refresh();
+            // We need to wipe out the existing file if it's there
+            var localFile = new FileInfo(path);
+            if (localFile.Exists)
+            {
+                localFile.Delete();
+            }
+
+            // Move to the correct location
+            tempFile.MoveTo(path);
         }
 
         public void Certify(IEnumerable<SyncAction> actions, bool strict)
