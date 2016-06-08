@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 
@@ -19,7 +18,7 @@ namespace Sbs20.Syncotron
         private static readonly ILog log = LogManager.GetLogger(typeof(LocalFilesystemService));
         private ReplicatorContext context;
         private IHashProvider hashProvider;
-        private IDictionary<string, FileItem> index;
+        private FileItemIndex index;
 
         [Serializable]
         private class Cursor
@@ -59,6 +58,20 @@ namespace Sbs20.Syncotron
         public LocalFilesystemService(ReplicatorContext context)
         {
             this.context = context;
+        }
+
+        public FileItemIndex Index
+        {
+            get
+            {
+                if (this.index == null)
+                {
+                    var files = this.context.LocalStorage.IndexSelect();
+                    this.index = new FileItemIndex(files);
+                }
+
+                return this.index;
+            }
         }
 
         public IHashProvider HashProvider
@@ -104,25 +117,11 @@ namespace Sbs20.Syncotron
 
         private void FileItemMergeFromIndex(FileItem fileItem)
         {
-            if (this.index == null)
+            var existing = this.Index[fileItem.Path];
+            if (existing != null && existing.Hash == fileItem.Hash)
             {
-                // Selecting item by item is way too slow. Select everything
-                // into memory and go from there.
-                log.Info("Started building local index");
-                var files = this.context.LocalStorage.IndexSelect();
-                this.index = files.ToDictionary(i => i.Path.ToLower(), i => i);
-                log.Info("Finished building local index");
+                fileItem.ServerRev = existing.ServerRev;
             }
-
-            try
-            {
-                var existing = this.index[fileItem.Path.ToLower()];
-                if (existing.Hash == fileItem.Hash)
-                {
-                    fileItem.ServerRev = existing.ServerRev;
-                }
-            }
-            catch { }
         }
 
         public Task DeleteAsync(string path)
@@ -220,6 +219,13 @@ namespace Sbs20.Syncotron
         public async Task WriteAsync(string path, Stream stream, DateTime lastModified)
         {
             var localFile = new FileInfo(path);
+
+            // We need to wipe out the existing file
+            if (localFile.Exists)
+            {
+                localFile.Delete();
+            }
+
             using (Stream localStream = localFile.OpenWrite())
             {
                 byte[] buffer = new byte[1 << 16];

@@ -262,17 +262,9 @@ namespace Sbs20.Syncotron
                 {
                     var response = await this.Client.Files.DownloadAsync(new DownloadArg(remoteFile.PathDisplay));
 
-                    FileInfo localFile = new FileInfo(localName);
-
-                    // We need to wipe out the existing file
-                    if (localFile.Exists)
-                    {
-                        localFile.Delete();
-                    }
-
                     using (var downloadStream = await response.GetContentAsStreamAsync())
                     {
-                        await this.context.LocalFilesystem.WriteAsync(localFile.FullName, downloadStream, remoteFile.ClientModified);
+                        await this.context.LocalFilesystem.WriteAsync(localName, downloadStream, remoteFile.ClientModified);
                     }
 
                     log.Debug("DownloadAsync():done");

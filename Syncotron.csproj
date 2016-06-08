@@ -69,6 +69,7 @@
     <Compile Include="Common\Base32Encoding.cs" />
     <Compile Include="Syncotron\Diagnostics\Json.cs" />
     <Compile Include="Syncotron\Diagnostics\Serialiserabler.cs" />
+    <Compile Include="Syncotron\FileItemIndex.cs" />
     <Compile Include="Syncotron\SyncActionTypeChooserMirrorDown.cs" />
     <Compile Include="Syncotron\SyncActionTypeChooserMirrorUp.cs" />
     <Compile Include="Syncotron\SyncActionTypeChooserTwoWay.cs" />
