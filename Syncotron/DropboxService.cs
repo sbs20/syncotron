@@ -5,6 +5,8 @@ using log4net;
 using Sbs20.Syncotron.Diagnostics;
 using System;
 using System.IO;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Sbs20.Syncotron
@@ -46,7 +48,11 @@ namespace Sbs20.Syncotron
 
                     var config = new DropboxClientConfig
                     {
-                        UserAgent = userAgent
+                        UserAgent = userAgent,
+                        HttpClient = new HttpClient(new WebRequestHandler { ReadWriteTimeout = 20 * 1000 })
+                        {
+                            Timeout = Timeout.InfiniteTimeSpan
+                        }
                     };
 
                     string accessToken = this.context.LocalStorage.SettingsRead<string>("Dropbox_AccessToken");
