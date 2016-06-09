@@ -37,10 +37,10 @@ It supports
  * Exclusions
 	* An array of patterns to avoid. Useful for ignoring certain paths or files
 
-## Running on Windows
+## Install on Windows
 TODO
 
-## Running on debian linux
+## Install on debian linux
 sudo apt-get install mono-complete
 
 See also:

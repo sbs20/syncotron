@@ -175,5 +175,20 @@ namespace Sbs20.Syncotron
         {
             get { return Type.GetType("Mono.Runtime") != null; }
         }
+
+        public ScanMode ScanMode
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(this.RemoteCursor) ||
+                    string.IsNullOrEmpty(this.LocalCursor) ||
+                    this.CommandType == CommandType.Fullsync)
+                {
+                    return ScanMode.Full;
+                }
+
+                return ScanMode.Continue;
+            }
+        }
     }
 }

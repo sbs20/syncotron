@@ -26,7 +26,7 @@ namespace Sbs20
                 MaximumConcurrency = 3,
                 HashProviderType = HashProviderType.DateTimeAndSize,
                 Exclusions = { "*/.@__Thumb*", "*/.dropbox", "*/desktop.ini", "/Shared" },
-                IgnoreCertificateErrors = true,
+                IgnoreCertificateErrors = false,
                 IsDebug = false,
                 ConflictStrategy = ConflictStrategy.RemoteWin,
                 Recover = false
@@ -45,6 +45,11 @@ namespace Sbs20
             if (arguments.ContainsKey("RemoteService"))
             {
                 context.RemoteService = arguments["RemoteService"].ToEnum<FileService>();
+            }
+
+            if (arguments.ContainsKey("IgnoreCertificateErrors"))
+            {
+                context.IgnoreCertificateErrors = true;
             }
 
             if (arguments.ContainsKey("HashProviderType"))
@@ -86,6 +91,7 @@ namespace Sbs20
                     log.Info("Starting syncotron");
                     log.InfoFormat("Current log / db: syncotron_{0}.xxx", context.FileSuffix());
                     log.InfoFormat("CommandType: {0}", context.CommandType.ToString());
+                    log.InfoFormat("ScanMode: {0}", context.ScanMode.ToString());
 
                     replicator.ActionStart += (s, a) =>
                     {

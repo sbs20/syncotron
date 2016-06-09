@@ -1,4 +1,5 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +8,8 @@ namespace Sbs20.Syncotron
 {
     public class SyncActionListBuilder
     {
+        private static readonly ILog log = LogManager.GetLogger(typeof(Replicator));
+
         private object mutex = new object();
 
         public long LocalFileCount { get; set; }
@@ -127,26 +130,12 @@ namespace Sbs20.Syncotron
             }
         }
 
-        private ScanMode ScanMode
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(this.Context.RemoteCursor) ||
-                    string.IsNullOrEmpty(this.Context.LocalCursor) ||
-                    this.Context.CommandType == CommandType.Fullsync)
-                {
-                    return ScanMode.Full;
-                }
-
-                return ScanMode.Continue;
-            }
-        }
-
         private async Task ScanRemoteAsync()
         {
             IFileItemProvider cloudService = this.Context.CloudService;
-            if (this.ScanMode == ScanMode.Full)
+            if (this.Context.ScanMode == ScanMode.Full)
             {
+                
                 this.RemoteCursor = await cloudService.ForEachAsync(this.Context.RemotePath, true, false, (item) => this.Add(item));
             }
             else if (this.Context.SyncDirection != SyncDirection.MirrorUp)
@@ -161,7 +150,7 @@ namespace Sbs20.Syncotron
 
         private async Task ScanLocalAsync()
         {
-            if (this.ScanMode == ScanMode.Full)
+            if (this.Context.ScanMode == ScanMode.Full)
             {
                 this.LocalCursor = await this.Context.LocalFilesystem.ForEachAsync(this.Context.LocalPath, true, true, (item) => this.Add(item));
             }
@@ -225,7 +214,7 @@ namespace Sbs20.Syncotron
             await local;
             await remote;
 
-            if (this.ScanMode == ScanMode.Continue && this.Context.SyncDirection == SyncDirection.TwoWay)
+            if (this.Context.ScanMode == ScanMode.Continue && this.Context.SyncDirection == SyncDirection.TwoWay)
             {
                 await this.FurtherScanForTwoWayContinuation();
             }
