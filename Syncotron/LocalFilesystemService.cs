@@ -222,6 +222,11 @@ namespace Sbs20.Syncotron
             string temp = path + suffix;
 
             var tempFile = new FileInfo(temp);
+            if (tempFile.Exists)
+            {
+                tempFile.Delete();
+            }
+
             using (Stream localStream = tempFile.OpenWrite())
             {
                 byte[] buffer = new byte[1 << 16];
