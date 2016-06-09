@@ -261,6 +261,13 @@ namespace Sbs20.Syncotron
                         this.Context.RemoteCursor = null;
                         break;
 
+                    case CommandType.Continue:
+                        this.Context.LocalStorage.SettingsWrite("IsCertified", false);
+                        this.Context.LocalCursor = await this.Context.LocalFilesystem.LatestCursorAsync(this.Context.LocalPath, true, true);
+                        this.Context.RemoteCursor = await this.Context.CloudService.LatestCursorAsync(this.Context.RemotePath, true, true);
+                        this.Context.LocalStorage.SettingsWrite("LastSync", DateTime.Now);
+                        break;
+
                     case CommandType.AnalysisOnly:
                         await this.PopulateActionsListAsync();
                         this.OnAnalysisComplete();

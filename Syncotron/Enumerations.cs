@@ -23,7 +23,8 @@
         CertifyLiberal,
         Autosync,
         Fullsync,
-        Reset
+        Reset,
+        Continue
     }
 
     public enum SyncDirection

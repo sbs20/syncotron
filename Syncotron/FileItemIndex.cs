@@ -11,9 +11,9 @@ namespace Sbs20.Syncotron
 
         public FileItemIndex(IEnumerable<FileItem> files)
         {
-            log.Info("Started building local index");
+            log.Info("Build local index : start");
             this.index = files.ToDictionary(i => i.Path.ToLower(), i => i);
-            log.Info("Finished building local index");
+            log.Info("Build local index : finish");
         }
 
         public FileItem this[string path]

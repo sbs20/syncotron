@@ -135,7 +135,6 @@ namespace Sbs20.Syncotron
             IFileItemProvider cloudService = this.Context.CloudService;
             if (this.Context.ScanMode == ScanMode.Full)
             {
-                
                 this.RemoteCursor = await cloudService.ForEachAsync(this.Context.RemotePath, true, false, (item) => this.Add(item));
             }
             else if (this.Context.SyncDirection != SyncDirection.MirrorUp)

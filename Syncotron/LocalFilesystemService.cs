@@ -66,7 +66,9 @@ namespace Sbs20.Syncotron
             {
                 if (this.index == null)
                 {
+                    log.Info("Retrieve file list : start");
                     var files = this.context.LocalStorage.IndexSelect();
+                    log.Info("Retrieve file list : finish");
                     this.index = new FileItemIndex(files);
                 }
 
