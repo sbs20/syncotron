@@ -19,6 +19,7 @@ namespace Sbs20.Syncotron
         public ulong DownloadedBytes { get; private set; }
         public ulong UploadedBytes { get; private set; }
         public DateTime Start { get; private set; }
+        public DateTime TransferStart { get; private set; }
 
         public event EventHandler<SyncAction> ActionStart;
         public event EventHandler<SyncAction> ActionComplete;
@@ -130,6 +131,11 @@ namespace Sbs20.Syncotron
             get { return DateTime.Now - this.Start; }
         }
 
+        public TimeSpan TransferDuration
+        {
+            get { return DateTime.Now - this.TransferStart; }
+        }
+
         public double DownloadedMeg
         {
             get { return this.DownloadedBytes / BytesPerMeg; }
@@ -142,12 +148,12 @@ namespace Sbs20.Syncotron
 
         public double DownloadRate
         {
-            get { return this.DownloadedMeg / this.Duration.TotalSeconds; }
+            get { return this.DownloadedMeg / this.TransferDuration.TotalSeconds; }
         }
 
         public double UploadRate
         {
-            get { return this.UploadedMeg / this.Duration.TotalSeconds; }
+            get { return this.UploadedMeg / this.TransferDuration.TotalSeconds; }
         }
 
         private async Task DoActionAsync(SyncAction action)
@@ -203,6 +209,8 @@ namespace Sbs20.Syncotron
 
         private async Task ProcessActionsAsync()
         {
+            this.TransferStart = DateTime.Now;
+
             List<Task> tasks = new List<Task>();
             foreach (var action in this.actions)
             {
@@ -252,6 +260,7 @@ namespace Sbs20.Syncotron
             try
             {
                 this.Start = DateTime.Now;
+                this.TransferStart = DateTime.Now;
 
                 switch (this.Context.CommandType)
                 {
