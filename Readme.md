@@ -7,12 +7,12 @@ Syncotron is platform neutral. It runs on x86 or ARM hardware. All you need is a
 runtime which can be mono. I wrote this to run on my Raspberry Pi and sync to my NAS.
 It supports
 
- * Mirror Download (just copy what's on the server)
- * Mirror Upload (just upload what's on the local machine)
+ * Mirror Download (just download and mirror what's on the server)
+ * Mirror Upload (just upload and mirror what's on the local machine)
  * Two way (keeps track of updates and deletions)
 
-Syncotron runs once and synchronises all files and then exits. It is *not* a real-time
-dameon or service which runs continually in the background.
+Syncotron runs once and synchronises all files and then exits. It is _not_ a real-time
+dameon or service which runs continuously in the background.
 
 In time it may run with .NET Core - but not today.
 
@@ -125,7 +125,7 @@ This requires Mono to run. Furthermore, because of problems with Dropbox not bei
 consistent with its reporting of file paths with respect to case, you MUST set the following
 environment variable MONO_IOMAP. You may also experience problems with SSL certificates if
 running on older versions of Mono (e.g. that on RPi) -- use -IgnoreCertificateErrors if you
-are comfortable doing so. Please note that *this is a security risk*. You can place the 
+are comfortable doing so. Please note that _this is a security risk_. You can place the 
 following in a script file and mark it executable.
 
 ```
