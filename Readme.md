@@ -11,6 +11,11 @@ It supports
  * Mirror Upload (just upload what's on the local machine)
  * Two way (keeps track of updates and deletions)
 
+Syncotron runs once and synchronises all files and then exits. It is *not* a real-time
+dameon or service which runs continually in the background.
+
+In time it may run with .NET Core - but not today.
+
 ## Options
  * Specify a LocalPath and RemotePath pair. The local path can be anywhere you have permissions
    including a remote file share
