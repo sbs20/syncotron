@@ -205,8 +205,7 @@ namespace Sbs20.Syncotron
             string sql = string.Format("select * from indx where Path = {0};",
                 DbController.ToParameter(keyFile.Path));
 
-            var indexFile = this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r)).FirstOrDefault();
-            return indexFile == null || indexFile.Hash != keyFile.Hash ? null : indexFile;
+            return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r)).FirstOrDefault();
         }
 
         public IEnumerable<FileItem> IndexSelect()

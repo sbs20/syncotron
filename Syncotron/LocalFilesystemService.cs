@@ -110,6 +110,11 @@ namespace Sbs20.Syncotron
         public FileItem ToFileItem(string path)
         {
             var fsi = this.ToFileSystemInfo(path);
+            if (!fsi.Exists)
+            {
+                return null;
+            }
+
             if (fsi is FileInfo)
             {
                 return FileItem.Create(fsi as FileInfo, this.HashProvider);
@@ -363,7 +368,11 @@ namespace Sbs20.Syncotron
         {
             log.DebugFormat("FileSelectAsync({0})", path);
             var fileItem = this.ToFileItem(path);
-            this.FileItemMergeFromStorage(fileItem);
+            if (fileItem != null)
+            {
+                this.FileItemMergeFromStorage(fileItem);
+            }
+
             return Task.FromResult(fileItem);
         }
     }

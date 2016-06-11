@@ -6,7 +6,14 @@
         {
             if (action.Remote == null || action.Remote.IsDeleted)
             {
-                return SyncActionType.DeleteLocal;
+                if (action.Local != null)
+                {
+                    return SyncActionType.DeleteLocal;
+                }
+                else
+                {
+                    return SyncActionType.None;
+                }
             }
 
             if (action.Local == null)
