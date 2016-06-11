@@ -127,6 +127,15 @@ namespace Sbs20.Syncotron
             }
         }
 
+        private void FileItemMergeFromStorage(FileItem fileItem)
+        {
+            var existing = this.context.LocalStorage.IndexSelect(fileItem);
+            if (existing != null && existing.Hash == fileItem.Hash)
+            {
+                fileItem.ServerRev = existing.ServerRev;
+            }
+        }
+
         public Task DeleteAsync(string path)
         {
             var fsi = this.ToFileSystemInfo(path);
@@ -352,8 +361,9 @@ namespace Sbs20.Syncotron
 
         public Task<FileItem> FileSelectAsync(string path)
         {
+            log.DebugFormat("FileSelectAsync({0})", path);
             var fileItem = this.ToFileItem(path);
-            this.FileItemMergeFromIndex(fileItem);
+            this.FileItemMergeFromStorage(fileItem);
             return Task.FromResult(fileItem);
         }
     }

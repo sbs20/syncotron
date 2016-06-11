@@ -1,4 +1,5 @@
-﻿using Sbs20.Data;
+﻿using log4net;
+using Sbs20.Data;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -12,6 +13,8 @@ namespace Sbs20.Syncotron
     /// </summary>
     public class LocalStorage : IDisposable
     {
+        private static readonly ILog log = LogManager.GetLogger(typeof(LocalStorage));
+
         const string connectionStringStub = "URI=file:{0}";
         private MonoSqliteController dbController;
 
@@ -197,11 +200,13 @@ namespace Sbs20.Syncotron
 
         public FileItem IndexSelect(FileItem keyFile)
         {
+            log.DebugFormat("IndexSelect({0})", keyFile.Path);
+
             string sql = string.Format("select * from indx where Path = {0};",
                 DbController.ToParameter(keyFile.Path));
 
             var indexFile = this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r)).FirstOrDefault();
-            return indexFile.Hash == keyFile.Hash ? indexFile : null;
+            return indexFile == null || indexFile.Hash != keyFile.Hash ? null : indexFile;
         }
 
         public IEnumerable<FileItem> IndexSelect()
