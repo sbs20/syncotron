@@ -1,4 +1,5 @@
 ﻿using log4net;
+using Sbs20.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -229,14 +230,23 @@ namespace Sbs20.Syncotron
                 tempFile.Delete();
             }
 
-            using (Stream localStream = tempFile.OpenWrite())
+            try
             {
-                byte[] buffer = new byte[1 << 16];
-                int read;
-                while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                using (Stream localStream = tempFile.OpenWrite())
                 {
-                    await localStream.WriteAsync(buffer, 0, read);
+                    byte[] buffer = new byte[1 << 16];
+                    int read;
+                    while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)
+                        .WithTimeout(TimeSpan.FromSeconds(this.context.HttpReadTimeoutInSeconds))) > 0)
+                    {
+                        await localStream.WriteAsync(buffer, 0, read);
+                    }
                 }
+            }
+            catch (TimeoutException)
+            {
+                tempFile.Delete();
+                throw;
             }
 
             bool success = false;

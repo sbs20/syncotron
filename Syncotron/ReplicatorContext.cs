@@ -5,6 +5,7 @@ namespace Sbs20.Syncotron
 {
     public class ReplicatorContext
     {
+        private const int DefaultHttpReadTimeoutInSeconds = 30;
         private LocalStorage localStorage;
         private LocalFilesystemService localFilesystem;
         private ICloudService cloudService;
@@ -22,6 +23,7 @@ namespace Sbs20.Syncotron
         public bool IsDebug { get; set; }
         public ConflictStrategy ConflictStrategy { get; set; }
         public bool Recover { get; set; }
+        public int HttpReadTimeoutInSeconds { get; set; }
 
         public ReplicatorContext()
         {
@@ -33,6 +35,7 @@ namespace Sbs20.Syncotron
             this.Exclusions = new List<string>();
             this.IgnoreCertificateErrors = false;
             this.HashProviderType = HashProviderType.DateTimeAndSize;
+            this.HttpReadTimeoutInSeconds = DefaultHttpReadTimeoutInSeconds;
         }
 
         public string FileSuffix()

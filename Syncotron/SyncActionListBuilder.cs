@@ -163,7 +163,7 @@ namespace Sbs20.Syncotron
             }
         }
 
-        private async Task FurtherScanForTwoWayContinuation()
+        private async Task FurtherScanForContinuation()
         {
             foreach (var action in this.ActionDictionary.Values)
             {
@@ -213,9 +213,12 @@ namespace Sbs20.Syncotron
             await local;
             await remote;
 
-            if (this.Context.ScanMode == ScanMode.Continue && this.Context.SyncDirection == SyncDirection.TwoWay)
+            if (this.Context.ScanMode == ScanMode.Continue)
             {
-                await this.FurtherScanForTwoWayContinuation();
+                // There's a minor expense in doing a further scan of files but it saves time
+                // when a previous job has failed (e.g. timeout) and avoids re-transferring
+                // files which already exist
+                await this.FurtherScanForContinuation();
             }
 
             foreach (var action in this.ActionDictionary.Values)
