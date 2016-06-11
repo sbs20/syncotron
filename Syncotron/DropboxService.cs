@@ -2,6 +2,7 @@
 using Dropbox.Api.Files;
 using Dropbox.Api.Users;
 using log4net;
+using Sbs20.Extensions;
 using Sbs20.Syncotron.Diagnostics;
 using System;
 using System.IO;
@@ -96,7 +97,9 @@ namespace Sbs20.Syncotron
             };
 
             var args0 = new ListFolderArg(path, recursive, false, deleted);
-            ListFolderResult result = await this.Client.Files.ListFolderAsync(args0);
+            ListFolderResult result = await this.Client.Files
+                .ListFolderAsync(args0)
+                .WithTimeout(TimeSpan.FromSeconds(this.context.HttpReadTimeoutInSeconds));
 
             // These logging calls are very expensive so check we're enabled first
             if (log.IsDebugEnabled)
@@ -113,7 +116,9 @@ namespace Sbs20.Syncotron
             while (result.HasMore)
             {
                 var args1 = new ListFolderContinueArg(result.Cursor);
-                result = await this.Client.Files.ListFolderContinueAsync(args1);
+                result = await this.Client.Files
+                    .ListFolderContinueAsync(args1)
+                    .WithTimeout(TimeSpan.FromSeconds(this.context.HttpReadTimeoutInSeconds));
 
                 if (log.IsDebugEnabled)
                 {
