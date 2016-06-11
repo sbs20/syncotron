@@ -14,7 +14,6 @@ namespace Sbs20.Syncotron
         public string RemotePath { get; set; }
         public CommandType CommandType { get; set; }
         public SyncDirection SyncDirection { get; set; }
-        public ProcessingMode ProcessingMode { get; set; }
         public FileService RemoteService { get; set; }
         public IList<string> Exclusions { get; private set; }
         public bool IgnoreCertificateErrors { get; set; }
@@ -31,7 +30,6 @@ namespace Sbs20.Syncotron
             this.RemoteService = FileService.Dropbox;
             this.CommandType = CommandType.AnalysisOnly;
             this.SyncDirection = SyncDirection.TwoWay;
-            this.ProcessingMode = ProcessingMode.Serial;
             this.Exclusions = new List<string>();
             this.IgnoreCertificateErrors = false;
             this.HashProviderType = HashProviderType.DateTimeAndSize;
@@ -75,7 +73,6 @@ namespace Sbs20.Syncotron
             this.LocalStorage.SettingsWrite("RemotePath", this.RemotePath);
             this.LocalStorage.SettingsWrite("CommandType", this.CommandType);
             this.LocalStorage.SettingsWrite("SyncDirection", this.SyncDirection);
-            this.LocalStorage.SettingsWrite("ProcessingMode", this.ProcessingMode);
             this.LocalStorage.SettingsWrite("RemoteService", this.RemoteService);
             this.LocalStorage.SettingsWrite("Exclusions", this.Exclusions);
             this.LocalStorage.SettingsWrite("IgnoreCertificateErrors", this.IgnoreCertificateErrors);

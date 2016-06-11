@@ -218,7 +218,7 @@ namespace Sbs20.Syncotron
                 Task task = this.DoActionAsync(action);
                 tasks.Add(task);
 
-                if (this.Context.ProcessingMode == ProcessingMode.Serial)
+                if (this.Context.MaximumConcurrency == 1)
                 {
                     await task;
                 }

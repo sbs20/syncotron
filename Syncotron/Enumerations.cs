@@ -34,12 +34,6 @@
         TwoWay
     }
 
-    public enum ProcessingMode
-    {
-        Serial,
-        Parallel
-    }
-
     public enum HashProviderType
     {
         DateTimeAndSize,

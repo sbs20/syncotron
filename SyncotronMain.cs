@@ -22,7 +22,6 @@ namespace Sbs20
                 RemotePath = arguments["RemotePath"] ?? string.Empty,
                 CommandType = CommandType.Autosync,
                 SyncDirection = SyncDirection.TwoWay,
-                ProcessingMode = ProcessingMode.Parallel,
                 MaximumConcurrency = 3,
                 HashProviderType = HashProviderType.DateTimeAndSize,
                 Exclusions = { "*/.@__Thumb*", "*/.dropbox", "*/desktop.ini", "/Shared" },
