@@ -224,7 +224,7 @@ namespace Sbs20.Syncotron
                 }
                 else
                 {
-                    while (tasks.Count > this.Context.MaximumConcurrency)
+                    while (tasks.Count >= this.Context.MaximumConcurrency)
                     {
                         await Task.Delay(100);
                         int index = 0;
