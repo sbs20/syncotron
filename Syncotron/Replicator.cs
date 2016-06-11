@@ -199,7 +199,7 @@ namespace Sbs20.Syncotron
 
             while (task.Status != TaskStatus.RanToCompletion)
             {
-                Task.Delay(5000).Wait();
+                Task.Delay(10000).Wait();
                 log.InfoFormat("Scanned {0} local files; {1} remote files", this.LocalFileCount, this.RemoteFileCount);
             }
 
