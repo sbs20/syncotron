@@ -16,6 +16,26 @@ dameon or service which runs continuously in the background.
 
 In time it may run with .NET Core - but not today.
 
+## Install on Windows
+If you just want to sync your personal files then you will be better off using the 
+native dropbox client. It is much cleverer at identifying changes, more efficient
+and will be better supported. If, however, you want to sync with a secondary or multiple 
+Dropbox accounts, or just perform some selective syncing, syncotron might help.
+
+You either need a recent version of the [.NET framework (4+)](https://msdn.microsoft.com/en-us/library/dn878908\(v=vs.110\).aspx)
+or [Mono](http://www.mono-project.com/download/).
+
+Download syncotron here: https://github.com/sbs20/syncotron/releases/download/v1.0.6008.26780-alpha/syncotron_1.0.6008.26780.zip
+
+Extract the files to a directory of your choice and run
+
+## Install on Debian linux
+```
+sudo apt-get install mono-complete
+wget https://github.com/sbs20/syncotron/releases/download/v1.0.6008.26780-alpha/syncotron_1.0.6008.26780.zip
+sudo unzip ~/syncotron_1.0.6008.26780.zip -d ~/syncotron
+```
+
 ## Options
  * Specify a LocalPath and RemotePath pair. The local path can be anywhere you have permissions
    including a remote file share
@@ -47,16 +67,6 @@ In time it may run with .NET Core - but not today.
 
  * Exclusions
 	* An array of patterns to avoid. Useful for ignoring certain paths or files
-
-## Install on Windows
-TODO
-
-## Install on debian linux
-sudo apt-get install mono-complete
-TODO
-
-http://logicalgenetics.com/raspberry-pi-and-mono-hello-world/
-http://www.mono-project.com/docs/getting-started/mono-basics/
 
 ## Example command lines
 
@@ -132,6 +142,16 @@ following in a script file and mark it executable.
 #!/bin/bash
 export MONO_IOMAP=all
 mono ~/syncotron/syncotron.exe -LocalPath /mnt/storage/dropbox -RemotePath / -CommandType Autosync -SyncDirection MirrorDown -IgnoreCertificateErrors
+```
+
+### Exclude some files
+This allows you to completely exclude types of files or whole folders. Exclusions are done using
+a very simple pattern match at the start or end of the path _relative_ to the base pair. E.g. you
+are syncing /Audio with c:\audio ... to exclude /Audio/Private/* or c:\audio\Private\* then merely
+add /Private. To exclude all "desktop.ini" files - add */desktop.ini. To exclude both delimit with
+a colon:
+```
+syncotron.exe -LocalPath c:\audio -RemotePath /Audio -CommandType Autosync -SyncDirection MirrorDown -Exclusions=/Private:*/desktop.ini
 ```
 
 ## Known issues
