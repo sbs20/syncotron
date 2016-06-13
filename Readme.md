@@ -5,9 +5,9 @@ Use Syncotron to sync your files with Dropbox (and in the future, other provider
 ![screenshot](https://github.com/sbs20/syncotron/blob/master/img/screen0.png)
 
 ## Why?
-Syncotron is platform neutral. It runs on x86 or ARM hardware. All you need is a .NET
-runtime which can be mono. I wrote this to run on my Raspberry Pi and sync to my NAS.
-It supports
+Syncotron is a platform-neutral headless sync engine. It runs on x86 or ARM hardware. 
+All you need is a .NET runtime which can be Mono. I wrote this to run on my Raspberry Pi 
+and sync to my NAS. It supports
 
  * Mirror Download (just download and mirror what's on the server)
  * Mirror Upload (just upload and mirror what's on the local machine)
