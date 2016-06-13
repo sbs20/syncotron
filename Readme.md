@@ -2,7 +2,7 @@
 
 Use Syncotron to sync your files with Dropbox (and in the future, other providers).
 
-!(https://github.com/sbs20/syncotron/img/screen0.png)
+!(https://github.com/sbs20/syncotron/blob/master/img/screen0.png)
 
 ## Why?
 Syncotron is platform neutral. It runs on x86 or ARM hardware. All you need is a .NET
