@@ -119,7 +119,11 @@
     <Error Condition="Exists('packages\Mono.Data.Sqlite.Portable.1.0.3.5\tools\Mono.Data.Sqlite.Portable.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build." />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Q /Y $(ProjectDir)lib\sqlite3.dll .</PostBuildEvent>
+    <PostBuildEvent>xcopy /Q /Y $(ProjectDir)lib\sqlite3.dll .
+xcopy /Q /Y .\*.dll $(ProjectDir)publish
+xcopy /Q /Y .\syncotron.exe $(ProjectDir)publish
+xcopy /Q /Y .\syncotron.exe.config $(ProjectDir)publish
+</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
