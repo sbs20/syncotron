@@ -30,7 +30,7 @@
 <a id="why" class="anchor" href="#why" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Why?</h2>
 
 <p>Syncotron is a platform-neutral headless sync engine. It runs on x86 or ARM hardware. 
-All you need is a .NET runtime which can be Mono. I wrote this to run on my Raspberry Pi 
+All you need is a .NET runtime, which can be Mono. I wrote this to run on my Raspberry Pi 
 and sync to my NAS. It supports</p>
 
 <ul>
@@ -39,7 +39,7 @@ and sync to my NAS. It supports</p>
 <li>Two way (keeps track of updates and deletions)</li>
 </ul>
 
-<p>Syncotron runs once and synchronises all files and then exits. It is <em>not</em> a real-time
+<p>Syncotron runs once and synchronises all files and then exits. It is <strong>not</strong> a real-time
 dameon or service which runs continuously in the background.</p>
 
 <p>In time it may run with .NET Core - but not today.</p>
@@ -198,7 +198,7 @@ is considerably faster.</p>
 consistent with its reporting of file paths with respect to case, you MUST set the following
 environment variable MONO_IOMAP. You may also experience problems with SSL certificates if
 running on older versions of Mono (e.g. that on RPi) -- use -IgnoreCertificateErrors if you
-are comfortable doing so. Please note that <em>this is a security risk</em>. You can place the 
+are comfortable doing so. Please note that <strong>this is a security risk</strong>. You can place the 
 following in a script file and mark it executable.</p>
 
 <pre><code>#!/bin/bash
@@ -210,7 +210,7 @@ mono ~/syncotron/syncotron.exe -LocalPath /mnt/storage/dropbox -RemotePath / -Co
 <a id="exclude-some-files" class="anchor" href="#exclude-some-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Exclude some files</h3>
 
 <p>This allows you to completely exclude types of files or whole folders. Exclusions are done using
-a very simple pattern match at the start or end of the path <em>relative</em> to the base pair. E.g. you
+a very simple pattern match at the start or end of the path <strong>relative</strong> to the base pair. E.g. you
 are syncing /Audio with c:\audio ... to exclude /Audio/Private/* or c:\audio\Private* then merely
 add /Private. To exclude all "desktop.ini" files - add */desktop.ini. To exclude both delimit with
 a colon:</p>
@@ -237,6 +237,12 @@ of the runtime of syncotron and I believe it's this:</p>
 <p>Although it was fixed a while ago, the fix hasn't got as far as the debian package on RPi. At
 least, that's my working theory. Although it's annoying, syncotron keeps track of what it has
 and hasn't done yet, so you can just re-run it with the same parameters.</p>
+
+<h3>
+<a id="http-timeout" class="anchor" href="#http-timeout" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Http Timeout</h3>
+
+<p>From time to time, the remote server will timeout. In these instances, Syncotron will simply
+terminate with an error. Any incomplete downloads will be re-attempted on the next execution.</p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/sbs20/syncotron">Syncotron</a> is maintained by <a href="https://github.com/sbs20">sbs20</a>.</span>
