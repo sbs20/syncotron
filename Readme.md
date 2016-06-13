@@ -133,3 +133,16 @@ following in a script file and mark it executable.
 export MONO_IOMAP=all
 mono ~/syncotron/syncotron.exe -LocalPath /mnt/storage/dropbox -RemotePath / -CommandType Autosync -SyncDirection MirrorDown -IgnoreCertificateErrors
 ```
+
+## Known issues
+
+### System.InvalidOperationException: The underlying Task is already in one of the three final states: RanToCompletion, Faulted, or Canceled.
+This only seems to happen when running under Mono - and on the Raspberry Pi. It happens outside
+of the runtime of syncotron and I believe it's this:
+
+ * https://bugzilla.xamarin.com/show_bug.cgi?id=7965 which was fixed here
+   https://github.com/mono/mono/commit/94f551d4
+
+Although it was fixed a while ago, the fix hasn't got as far as the debian package on RPi. At
+least, that's my working theory. Although it's annoying, syncrotron keeps track of what it has
+and hasn't done yet, so you can just re-run it with the same parameters.
