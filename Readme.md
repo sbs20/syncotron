@@ -40,7 +40,7 @@ sudo unzip ~/syncotron_1.0.6008.26780.zip -d ~/syncotron
 
 ## Options
  * Specify a LocalPath and RemotePath pair. The local path can be anywhere you have permissions
-   including a remote file share
+   including a network file share
 
  * Choose your hashing strategy. By default, Syncotron uses a hash of the size and last-
    modified date for performance on slow systems, but it also supports slower MD5 content hashing.
@@ -166,5 +166,5 @@ of the runtime of syncotron and I believe it's this:
    https://github.com/mono/mono/commit/94f551d4
 
 Although it was fixed a while ago, the fix hasn't got as far as the debian package on RPi. At
-least, that's my working theory. Although it's annoying, syncrotron keeps track of what it has
+least, that's my working theory. Although it's annoying, syncotron keeps track of what it has
 and hasn't done yet, so you can just re-run it with the same parameters.
