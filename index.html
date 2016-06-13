@@ -43,6 +43,29 @@ dameon or service which runs continuously in the background.</p>
 <p>In time it may run with .NET Core - but not today.</p>
 
 <h2>
+<a id="install-on-windows" class="anchor" href="#install-on-windows" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install on Windows</h2>
+
+<p>If you just want to sync your personal files then you will be better off using the 
+native dropbox client. It is much cleverer at identifying changes, more efficient
+and will be better supported. If, however, you want to sync with a secondary or multiple 
+Dropbox accounts, or just perform some selective syncing, syncotron might help.</p>
+
+<p>You either need a recent version of the <a href="https://msdn.microsoft.com/en-us/library/dn878908(v=vs.110).aspx">.NET framework (4+)</a>
+or <a href="http://www.mono-project.com/download/">Mono</a>.</p>
+
+<p>Download syncotron here: <a href="https://github.com/sbs20/syncotron/releases/download/v1.0.6008.26780-alpha/syncotron_1.0.6008.26780.zip">https://github.com/sbs20/syncotron/releases/download/v1.0.6008.26780-alpha/syncotron_1.0.6008.26780.zip</a></p>
+
+<p>Extract the files to a directory of your choice and run</p>
+
+<h2>
+<a id="install-on-debian-linux" class="anchor" href="#install-on-debian-linux" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install on Debian linux</h2>
+
+<pre><code>sudo apt-get install mono-complete
+wget https://github.com/sbs20/syncotron/releases/download/v1.0.6008.26780-alpha/syncotron_1.0.6008.26780.zip
+sudo unzip ~/syncotron_1.0.6008.26780.zip -d ~/syncotron
+</code></pre>
+
+<h2>
 <a id="options" class="anchor" href="#options" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Options</h2>
 
 <ul>
@@ -88,20 +111,6 @@ are running in MirrorDown direction</li>
 </ul>
 </li>
 </ul>
-
-<h2>
-<a id="install-on-windows" class="anchor" href="#install-on-windows" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install on Windows</h2>
-
-<p>TODO</p>
-
-<h2>
-<a id="install-on-debian-linux" class="anchor" href="#install-on-debian-linux" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install on debian linux</h2>
-
-<p>sudo apt-get install mono-complete
-TODO</p>
-
-<p><a href="http://logicalgenetics.com/raspberry-pi-and-mono-hello-world/">http://logicalgenetics.com/raspberry-pi-and-mono-hello-world/</a>
-<a href="http://www.mono-project.com/docs/getting-started/mono-basics/">http://www.mono-project.com/docs/getting-started/mono-basics/</a></p>
 
 <h2>
 <a id="example-command-lines" class="anchor" href="#example-command-lines" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Example command lines</h2>
@@ -193,6 +202,18 @@ following in a script file and mark it executable.</p>
 <pre><code>#!/bin/bash
 export MONO_IOMAP=all
 mono ~/syncotron/syncotron.exe -LocalPath /mnt/storage/dropbox -RemotePath / -CommandType Autosync -SyncDirection MirrorDown -IgnoreCertificateErrors
+</code></pre>
+
+<h3>
+<a id="exclude-some-files" class="anchor" href="#exclude-some-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Exclude some files</h3>
+
+<p>This allows you to completely exclude types of files or whole folders. Exclusions are done using
+a very simple pattern match at the start or end of the path <em>relative</em> to the base pair. E.g. you
+are syncing /Audio with c:\audio ... to exclude /Audio/Private/* or c:\audio\Private* then merely
+add /Private. To exclude all "desktop.ini" files - add */desktop.ini. To exclude both delimit with
+a colon:</p>
+
+<pre><code>syncotron.exe -LocalPath c:\audio -RemotePath /Audio -CommandType Autosync -SyncDirection MirrorDown -Exclusions=/Private:*/desktop.ini
 </code></pre>
 
 <h2>
