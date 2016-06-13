@@ -2,6 +2,8 @@
 
 Use Syncotron to sync your files with Dropbox (and in the future, other providers).
 
+!(https://github.com/sbs20/syncotron/img/screen0.png)
+
 ## Why?
 Syncotron is platform neutral. It runs on x86 or ARM hardware. All you need is a .NET
 runtime which can be mono. I wrote this to run on my Raspberry Pi and sync to my NAS.
@@ -18,7 +20,7 @@ In time it may run with .NET Core - but not today.
 
 ## Install on Windows
 If you just want to sync your personal files then you will be better off using the 
-native dropbox client. It is much cleverer at identifying changes, more efficient
+native dropbox client which is much cleverer at identifying changes, more efficient
 and will be better supported. If, however, you want to sync with a secondary or multiple 
 Dropbox accounts, or just perform some selective syncing, syncotron might help.
 
