@@ -6,14 +6,14 @@ Use Syncotron to sync your files with Dropbox (and in the future, other provider
 
 ## Why?
 Syncotron is a platform-neutral headless sync engine. It runs on x86 or ARM hardware. 
-All you need is a .NET runtime which can be Mono. I wrote this to run on my Raspberry Pi 
+All you need is a .NET runtime, which can be Mono. I wrote this to run on my Raspberry Pi 
 and sync to my NAS. It supports
 
  * Mirror Download (just download and mirror what's on the server)
  * Mirror Upload (just upload and mirror what's on the local machine)
  * Two way (keeps track of updates and deletions)
 
-Syncotron runs once and synchronises all files and then exits. It is _not_ a real-time
+Syncotron runs once and synchronises all files and then exits. It is **not** a real-time
 dameon or service which runs continuously in the background.
 
 In time it may run with .NET Core - but not today.
@@ -137,7 +137,7 @@ This requires Mono to run. Furthermore, because of problems with Dropbox not bei
 consistent with its reporting of file paths with respect to case, you MUST set the following
 environment variable MONO_IOMAP. You may also experience problems with SSL certificates if
 running on older versions of Mono (e.g. that on RPi) -- use -IgnoreCertificateErrors if you
-are comfortable doing so. Please note that _this is a security risk_. You can place the 
+are comfortable doing so. Please note that **this is a security risk**. You can place the 
 following in a script file and mark it executable.
 
 ```
@@ -148,7 +148,7 @@ mono ~/syncotron/syncotron.exe -LocalPath /mnt/storage/dropbox -RemotePath / -Co
 
 ### Exclude some files
 This allows you to completely exclude types of files or whole folders. Exclusions are done using
-a very simple pattern match at the start or end of the path _relative_ to the base pair. E.g. you
+a very simple pattern match at the start or end of the path **relative** to the base pair. E.g. you
 are syncing /Audio with c:\audio ... to exclude /Audio/Private/* or c:\audio\Private\* then merely
 add /Private. To exclude all "desktop.ini" files - add */desktop.ini. To exclude both delimit with
 a colon:
@@ -168,3 +168,7 @@ of the runtime of syncotron and I believe it's this:
 Although it was fixed a while ago, the fix hasn't got as far as the debian package on RPi. At
 least, that's my working theory. Although it's annoying, syncotron keeps track of what it has
 and hasn't done yet, so you can just re-run it with the same parameters.
+
+### Http Timeout
+From time to time, the remote server will timeout. In these instances, Syncotron will simply
+terminate with an error. Any incomplete downloads will be re-attempted on the next execution.
