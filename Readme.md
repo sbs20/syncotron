@@ -2,7 +2,7 @@
 
 Use Syncotron to sync your files with Dropbox (and in the future, other providers).
 
-![screenshot](https://github.com/sbs20/syncotron/blob/master/img/screen0.png)
+![screenshot](https://github.com/sbs20/syncotron/raw/master/img/screen0.png)
 
 ## Why?
 Syncotron is a platform-neutral headless sync engine. It runs on x86 or ARM hardware. 
