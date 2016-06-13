@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Syncotron by sbs20</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Syncotron</h1>
+      <h2 class="project-tagline">Platform neutral .NET cloud replicator</h2>
+      <a href="https://github.com/sbs20/syncotron" class="btn">View on GitHub</a>
+      <a href="https://github.com/sbs20/syncotron/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/sbs20/syncotron/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="syncotron" class="anchor" href="#syncotron" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Syncotron</h1>
+
+<p>Use Syncotron to sync your files with Dropbox (and in the future, other providers).</p>
+
+<h2>
+<a id="why" class="anchor" href="#why" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Why?</h2>
+
+<p>Syncotron is platform neutral. It runs on x86 or ARM hardware. All you need is a .NET
+runtime which can be mono. I wrote this to run on my Raspberry Pi and sync to my NAS.
+It supports</p>
+
+<ul>
+<li>Mirror Download (just download and mirror what's on the server)</li>
+<li>Mirror Upload (just upload and mirror what's on the local machine)</li>
+<li>Two way (keeps track of updates and deletions)</li>
+</ul>
+
+<p>Syncotron runs once and synchronises all files and then exits. It is <em>not</em> a real-time
+dameon or service which runs continuously in the background.</p>
+
+<p>In time it may run with .NET Core - but not today.</p>
+
+<h2>
+<a id="options" class="anchor" href="#options" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Options</h2>
+
+<ul>
+<li><p>Specify a LocalPath and RemotePath pair. The local path can be anywhere you have permissions
+including a remote file share</p></li>
+<li><p>Choose your hashing strategy. By default, Syncotron uses a hash of the size and last-
+modified date for performance on slow systems, but it also supports slower MD5 content hashing.</p></li>
+<li>
+<p>Specify a CommandMode.</p>
+
+<ul>
+<li>AnalysisOnly - examines the files and doesn't do anything</li>
+<li>Fullsync - always scans and compares all files</li>
+<li>Autosync - scans and compares all files then subsequently scans and compares changes</li>
+<li>Reset - clears local cursor information - Autosync will revert to a Fullscan once</li>
+<li>CertifyStrict - if you've manually downloaded all files already and are confident that everything
+is in sync, then by running certify you can avoid re-downloading / uploading everything so
+that Autosync will work. Certify examines all files and takes a hash to store in its index.
+Strict mode will fail unless all files are exactly present on both sides.</li>
+<li>CertifyLiberal - as per strict, but only matches (same size) are certified. Everything else is
+left so that the next sync job will do something about it.</li>
+<li>Continue - sets the local and remote cursors so that subsequent Autosync will just apply changes
+only. This is useful if you are not too bothered about having a full local index of files and you
+are running in MirrorDown direction</li>
+</ul>
+</li>
+<li>
+<p>ConflictStrategy</p>
+
+<ul>
+<li>None - do nothing (conflict remains)</li>
+<li>RemoteWin - server always wins</li>
+<li>LocalWin - local always wins</li>
+<li>LatestWin - compares date modification stamps and uses the newest</li>
+<li>KeepBoth - downloads, does a hash comparison, if different keeps both, otherwise resets hashes</li>
+</ul>
+</li>
+<li>
+<p>Exclusions</p>
+
+<ul>
+<li>An array of patterns to avoid. Useful for ignoring certain paths or files</li>
+</ul>
+</li>
+</ul>
+
+<h2>
+<a id="install-on-windows" class="anchor" href="#install-on-windows" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install on Windows</h2>
+
+<p>TODO</p>
+
+<h2>
+<a id="install-on-debian-linux" class="anchor" href="#install-on-debian-linux" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install on debian linux</h2>
+
+<p>sudo apt-get install mono-complete
+TODO</p>
+
+<p><a href="http://logicalgenetics.com/raspberry-pi-and-mono-hello-world/">http://logicalgenetics.com/raspberry-pi-and-mono-hello-world/</a>
+<a href="http://www.mono-project.com/docs/getting-started/mono-basics/">http://www.mono-project.com/docs/getting-started/mono-basics/</a></p>
+
+<h2>
+<a id="example-command-lines" class="anchor" href="#example-command-lines" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Example command lines</h2>
+
+<h3>
+<a id="simple-download-example" class="anchor" href="#simple-download-example" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Simple download example.</h3>
+
+<p>Sync up the remote /Documents directory. The first run will perform a full index and download.
+Subsequent runs will use a remote cursor to apply changes only</p>
+
+<pre><code>syncotron.exe -LocalPath \\storage\Dropbox\Documents -RemotePath /Documents -CommandType Autosync -SyncDirection MirrorDown
+</code></pre>
+
+<h3>
+<a id="full-re-sync-download" class="anchor" href="#full-re-sync-download" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Full re-sync download</h3>
+
+<p>If you are concerned that Autosync has drifted out of alignment (perhaps through accidental 
+deletion of local files) then just run a one off Fullsync. If you don't have full control of
+your local drive then this may be worth doing. It is slower than Autosync / Continue.</p>
+
+<pre><code>syncotron.exe -LocalPath \\storage\Dropbox\Documents -RemotePath /Documents -CommandType Fullsync -SyncDirection MirrorDown
+</code></pre>
+
+<h3>
+<a id="certify" class="anchor" href="#certify" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Certify</h3>
+
+<p>Where local files exist and you know for certain that they are the same as the remote versions.
+You want to avoid forcing a full download of all files again. Run a one off CertifyLiberal
+and then switch to Autosync. This works by building a full index of all remote and local files
+and their hashes so that subsequent changes can be easily spotted. Essentially this is <em>you</em>
+certifying to the system that the remote hash and local hash can be associated.</p>
+
+<pre><code>syncotron.exe -LocalPath \\storage\Dropbox\Documents -RemotePath /Documents -CommandType CertifyLiberal -SyncDirection MirrorDown
+</code></pre>
+
+<h3>
+<a id="continue" class="anchor" href="#continue" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Continue</h3>
+
+<p>You know all the local files are in sync (or don't care that they're not). And you just want
+to get straight to "changes only". The advantage of this approach is that it's a really fast
+shortcut. The downside is that if you need to switch to a Fullsync to ensure that everything
+is the same then Fullsync will not find local index entries (with file hashes) and will end
+up downloading a whole load of unnecessary data. If so - see Certify.</p>
+
+<pre><code>syncotron.exe -LocalPath \\storage\Dropbox\Documents -RemotePath /Documents -CommandType Continue -SyncDirection MirrorDown
+</code></pre>
+
+<h3>
+<a id="upload-data" class="anchor" href="#upload-data" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Upload data</h3>
+
+<p>Sync up the local /Documents directory to remote. The first run will perform a full index and 
+upload. Subsequent runs will rescan the local disk and compare it to previous runs to calculate
+differences to apply changes only</p>
+
+<pre><code>syncotron.exe -LocalPath \\storage\Documents -RemotePath /Documents -CommandType Autosync -SyncDirection MirrorUp
+</code></pre>
+
+<h3>
+<a id="recover-from-replicator-already-running" class="anchor" href="#recover-from-replicator-already-running" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Recover from "Replicator already running"</h3>
+
+<p>If a previous job has failed unexpectedly then it's possible that syncotron did not have a 
+chance to clean up. If so add the -Recover switch.</p>
+
+<pre><code>syncotron.exe -LocalPath c:\Documents -RemotePath /Documents -CommandType Autosync -SyncDirection MirrorUp -Recover
+</code></pre>
+
+<h3>
+<a id="two-way-sync" class="anchor" href="#two-way-sync" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Two way sync</h3>
+
+<p>This is more like standard Dropbox. Syncotron tracks deletions so will delete remotely if
+needed. Because of the way syncotron tracks deletions this can be quite slow if you are
+syncing a lot of files and running on a slow computer. It takes around 10 minutes to do a 
+full scan of 100k files on a remote NAS running on a Raspberry PI 2. An i7 with a local SSD
+is considerably faster.</p>
+
+<pre><code>syncotron.exe -LocalPath c:\Documents -RemotePath /Documents -CommandType Autosync -SyncDirection TwoWay
+</code></pre>
+
+<h3>
+<a id="running-on-linux" class="anchor" href="#running-on-linux" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Running on Linux</h3>
+
+<p>This requires Mono to run. Furthermore, because of problems with Dropbox not being entirely
+consistent with its reporting of file paths with respect to case, you MUST set the following
+environment variable MONO_IOMAP. You may also experience problems with SSL certificates if
+running on older versions of Mono (e.g. that on RPi) -- use -IgnoreCertificateErrors if you
+are comfortable doing so. Please note that <em>this is a security risk</em>. You can place the 
+following in a script file and mark it executable.</p>
+
+<pre><code>#!/bin/bash
+export MONO_IOMAP=all
+mono ~/syncotron/syncotron.exe -LocalPath /mnt/storage/dropbox -RemotePath / -CommandType Autosync -SyncDirection MirrorDown -IgnoreCertificateErrors
+</code></pre>
+
+<h2>
+<a id="known-issues" class="anchor" href="#known-issues" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Known issues</h2>
+
+<h3>
+<a id="systeminvalidoperationexception-the-underlying-task-is-already-in-one-of-the-three-final-states-rantocompletion-faulted-or-canceled" class="anchor" href="#systeminvalidoperationexception-the-underlying-task-is-already-in-one-of-the-three-final-states-rantocompletion-faulted-or-canceled" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>System.InvalidOperationException: The underlying Task is already in one of the three final states: RanToCompletion, Faulted, or Canceled.</h3>
+
+<p>This only seems to happen when running under Mono - and on the Raspberry Pi. It happens outside
+of the runtime of syncotron and I believe it's this:</p>
+
+<ul>
+<li>
+<a href="https://bugzilla.xamarin.com/show_bug.cgi?id=7965">https://bugzilla.xamarin.com/show_bug.cgi?id=7965</a> which was fixed here
+<a href="https://github.com/mono/mono/commit/94f551d4">https://github.com/mono/mono/commit/94f551d4</a>
+</li>
+</ul>
+
+<p>Although it was fixed a while ago, the fix hasn't got as far as the debian package on RPi. At
+least, that's my working theory. Although it's annoying, syncrotron keeps track of what it has
+and hasn't done yet, so you can just re-run it with the same parameters.</p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/sbs20/syncotron">Syncotron</a> is maintained by <a href="https://github.com/sbs20">sbs20</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
