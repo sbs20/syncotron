@@ -24,7 +24,7 @@ namespace Sbs20
                 SyncDirection = SyncDirection.TwoWay,
                 MaximumConcurrency = 3,
                 HashProviderType = HashProviderType.DateTimeAndSize,
-                Exclusions = { "*/.@__Thumb*", "*/.dropbox", "*/desktop.ini", "/Shared" },
+                Exclusions = { "*/.@__Thumb*", "*/.dropbox" },
                 IgnoreCertificateErrors = false,
                 IsDebug = false,
                 ConflictStrategy = ConflictStrategy.RemoteWin,
@@ -69,6 +69,15 @@ namespace Sbs20
             if (arguments.ContainsKey("Recover"))
             {
                 context.Recover = true;
+            }
+
+            if (arguments.ContainsKey("Exclusions"))
+            {
+                var items = arguments["Exclusions"].Split(':');
+                foreach (var item in items)
+                {
+                    context.Exclusions.Add(item);
+                }
             }
 
             context.CleanAndPersist();
