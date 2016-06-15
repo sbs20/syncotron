@@ -63,8 +63,11 @@ or <a href="http://www.mono-project.com/download/">Mono</a>.</p>
 <a id="install-on-debian-linux" class="anchor" href="#install-on-debian-linux" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install on Debian linux</h2>
 
 <pre><code>sudo apt-get install mono-complete
-wget https://github.com/sbs20/syncotron/releases/download/v1.0.6008.26780-alpha/syncotron_1.0.6008.26780.zip
+wget https://github.com/sbs20/syncotron/releases/download/v1.0.6010.26617-alpha/syncotron_1.0.6010.26617.zip
 sudo unzip ~/syncotron_1.0.6008.26780.zip -d ~/syncotron
+sudo mkdir -p /opt/syncotron
+sudo mv ~/syncotron /opt/syncotron/bin
+sudo chmod +x /opt/syncotron/bin/syncotron.sh
 </code></pre>
 
 <h2>
@@ -194,16 +197,12 @@ is considerably faster.</p>
 <h3>
 <a id="running-on-linux" class="anchor" href="#running-on-linux" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Running on Linux</h3>
 
-<p>This requires Mono to run. Furthermore, because of problems with Dropbox not being entirely
-consistent with its reporting of file paths with respect to case, you MUST set the following
-environment variable MONO_IOMAP. You may also experience problems with SSL certificates if
+<p>This requires Mono to run. You may experience problems with SSL certificates if
 running on older versions of Mono (e.g. that on RPi) -- use -IgnoreCertificateErrors if you
 are comfortable doing so. Please note that <strong>this is a security risk</strong>. You can place the 
 following in a script file and mark it executable.</p>
 
-<pre><code>#!/bin/bash
-export MONO_IOMAP=all
-mono ~/syncotron/syncotron.exe -LocalPath /mnt/storage/dropbox -RemotePath / -CommandType Autosync -SyncDirection MirrorDown -IgnoreCertificateErrors
+<pre><code>/opt/syncotron/bin/syncotron.sh -LocalPath /mnt/storage/dropbox -RemotePath / -CommandType Autosync -SyncDirection MirrorDown -IgnoreCertificateErrors
 </code></pre>
 
 <h3>
