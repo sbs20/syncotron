@@ -89,7 +89,18 @@ namespace Sbs20
         {
             try
             {
-                var context = ToReplicatorContext(args);
+                ReplicatorContext context = null;
+
+                try
+                {
+                    context = ToReplicatorContext(args);
+                }
+                catch
+                {
+                    Console.WriteLine("You must at least specify -LocalPath and -RemotePath arguments.");
+                    Console.WriteLine("For more information please visit https://sbs20.github.io/syncotron/");
+                    return;
+                }
 
                 GlobalContext.Properties["LogSuffix"] = context.FileSuffix();
                 log4net.Config.XmlConfigurator.Configure();

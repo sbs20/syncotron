@@ -109,6 +109,9 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="Readme.md" />
+    <None Include="syncotron.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="lib\sqlite3.def" />
@@ -126,6 +129,7 @@
 xcopy /Q /Y .\*.dll $(ProjectDir)publish
 xcopy /Q /Y .\syncotron.exe $(ProjectDir)publish
 xcopy /Q /Y .\syncotron.exe.config $(ProjectDir)publish
+xcopy /Q /Y .\syncotron.sh $(ProjectDir)publish
 </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

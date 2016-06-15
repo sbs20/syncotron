@@ -36,6 +36,9 @@ Extract the files to a directory of your choice and run
 sudo apt-get install mono-complete
 wget https://github.com/sbs20/syncotron/releases/download/v1.0.6008.26780-alpha/syncotron_1.0.6008.26780.zip
 sudo unzip ~/syncotron_1.0.6008.26780.zip -d ~/syncotron
+sudo mkdir -p /opt/syncotron
+sudo mv ~/syncotron /opt/syncotron/bin
+sudo chmod +x /opt/syncotron/bin/syncotron.sh
 ```
 
 ## Options
@@ -133,17 +136,13 @@ syncotron.exe -LocalPath c:\Documents -RemotePath /Documents -CommandType Autosy
 ```
 
 ### Running on Linux
-This requires Mono to run. Furthermore, because of problems with Dropbox not being entirely
-consistent with its reporting of file paths with respect to case, you MUST set the following
-environment variable MONO_IOMAP. You may also experience problems with SSL certificates if
+This requires Mono to run. You may experience problems with SSL certificates if
 running on older versions of Mono (e.g. that on RPi) -- use -IgnoreCertificateErrors if you
 are comfortable doing so. Please note that **this is a security risk**. You can place the 
 following in a script file and mark it executable.
 
 ```
-#!/bin/bash
-export MONO_IOMAP=all
-mono ~/syncotron/syncotron.exe -LocalPath /mnt/storage/dropbox -RemotePath / -CommandType Autosync -SyncDirection MirrorDown -IgnoreCertificateErrors
+/opt/syncotron/bin/syncotron.sh -LocalPath /mnt/storage/dropbox -RemotePath / -CommandType Autosync -SyncDirection MirrorDown -IgnoreCertificateErrors
 ```
 
 ### Exclude some files
