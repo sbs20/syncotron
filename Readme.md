@@ -141,7 +141,32 @@ are comfortable doing so. Please note that **this is a security risk**. You can 
 following in a script file and mark it executable.
 
 ```
+sudo nano autosync
+```
+Add this
+```
 /opt/syncotron/bin/syncotron.sh -LocalPath /mnt/storage/dropbox -RemotePath / -CommandType Autosync -SyncDirection MirrorDown -IgnoreCertificateErrors
+```
+Then
+```
+sudo chmod +x autosync
+```
+
+#### Setting up a cron job on linux
+For more info on cron, see [here](http://www.unixgeeks.org/security/newbie/unix/cron-1.html), but
+in short, set up your root crontab:
+```
+sudo crontab -e
+```
+
+And then create your job by adding this line which will:
+ * every five minutes...
+ * change the working directory to /home/pi (this is running as root)
+ * and if successful, execute autosync with elevated privileges
+ * redirecting the standard and error output to autosync.log
+
+```
+*/5 * * * * cd /home/pi && sudo ./autosync >> ./autosync.log 2>&1
 ```
 
 ### Exclude some files

@@ -15,5 +15,12 @@ namespace Sbs20.Extensions
 
             throw new TimeoutException();
         }
+
+        public static bool IsInFinalState(this Task task)
+        {
+            return task.Status == TaskStatus.Faulted ||
+                task.Status == TaskStatus.RanToCompletion ||
+                task.Status == TaskStatus.Canceled;
+        }
     }
 }
