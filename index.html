@@ -55,7 +55,7 @@ Dropbox accounts, or just perform some selective syncing, syncotron might help.<
 <p>You either need a recent version of the <a href="https://msdn.microsoft.com/en-us/library/dn878908(v=vs.110).aspx">.NET framework (4+)</a>
 or <a href="http://www.mono-project.com/download/">Mono</a>.</p>
 
-<p>Download syncotron here: <a href="https://github.com/sbs20/syncotron/releases/download/v1.0.6008.26780-alpha/syncotron_1.0.6008.26780.zip">https://github.com/sbs20/syncotron/releases/download/v1.0.6008.26780-alpha/syncotron_1.0.6008.26780.zip</a></p>
+<p>Download syncotron here: <a href="https://github.com/sbs20/syncotron/releases/latest">https://github.com/sbs20/syncotron/releases/latest</a></p>
 
 <p>Extract the files to a directory of your choice and run</p>
 
@@ -63,9 +63,9 @@ or <a href="http://www.mono-project.com/download/">Mono</a>.</p>
 <a id="install-on-debian-linux" class="anchor" href="#install-on-debian-linux" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install on Debian linux</h2>
 
 <pre><code>sudo apt-get install mono-complete
-wget https://github.com/sbs20/syncotron/releases/download/v1.0.6010.26617-alpha/syncotron_1.0.6010.26617.zip
+wget https://github.com/sbs20/syncotron/releases/download/v1.0.6011.26581-alpha/syncotron_1.0.6011.26581.zip
 sudo mkdir -p /opt/syncotron
-sudo unzip ~/syncotron_1.0.6010.26617.zip -d /opt/syncotron/bin
+sudo unzip ~/syncotron_1.0.6011.26581.zip -d /opt/syncotron/bin
 sudo chmod +x /opt/syncotron/bin/syncotron.sh
 </code></pre>
 
@@ -201,7 +201,38 @@ running on older versions of Mono (e.g. that on RPi) -- use -IgnoreCertificateEr
 are comfortable doing so. Please note that <strong>this is a security risk</strong>. You can place the 
 following in a script file and mark it executable.</p>
 
+<pre><code>sudo nano autosync
+</code></pre>
+
+<p>Add this</p>
+
 <pre><code>/opt/syncotron/bin/syncotron.sh -LocalPath /mnt/storage/dropbox -RemotePath / -CommandType Autosync -SyncDirection MirrorDown -IgnoreCertificateErrors
+</code></pre>
+
+<p>Then</p>
+
+<pre><code>sudo chmod +x autosync
+</code></pre>
+
+<h4>
+<a id="setting-up-a-cron-job-on-linux" class="anchor" href="#setting-up-a-cron-job-on-linux" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Setting up a cron job on linux</h4>
+
+<p>For more info on cron, see <a href="http://www.unixgeeks.org/security/newbie/unix/cron-1.html">here</a>, but
+in short, set up your root crontab:</p>
+
+<pre><code>sudo crontab -e
+</code></pre>
+
+<p>And then create your job by adding this line which will:</p>
+
+<ul>
+<li>every five minutes...</li>
+<li>change the working directory to /home/pi (this is running as root)</li>
+<li>and if successful, execute autosync with elevated privileges</li>
+<li>redirecting the standard and error output to autosync.log</li>
+</ul>
+
+<pre><code>*/5 * * * * cd /home/pi &amp;&amp; sudo ./autosync &gt;&gt; ./autosync.log 2&gt;&amp;1
 </code></pre>
 
 <h3>
