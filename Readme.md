@@ -27,16 +27,16 @@ Dropbox accounts, or just perform some selective syncing, syncotron might help.
 You either need a recent version of the [.NET framework (4+)](https://msdn.microsoft.com/en-us/library/dn878908\(v=vs.110\).aspx)
 or [Mono](http://www.mono-project.com/download/).
 
-Download syncotron here: https://github.com/sbs20/syncotron/releases/download/v1.0.6008.26780-alpha/syncotron_1.0.6008.26780.zip
+Download syncotron here: https://github.com/sbs20/syncotron/releases/latest
 
 Extract the files to a directory of your choice and run
 
 ## Install on Debian linux
 ```
 sudo apt-get install mono-complete
-wget https://github.com/sbs20/syncotron/releases/download/v1.0.6010.26617-alpha/syncotron_1.0.6010.26617.zip
+wget https://github.com/sbs20/syncotron/releases/download/v1.0.6011.26581-alpha/syncotron_1.0.6011.26581.zip
 sudo mkdir -p /opt/syncotron
-sudo unzip ~/syncotron_1.0.6010.26617.zip -d /opt/syncotron/bin
+sudo unzip ~/syncotron_1.0.6011.26581.zip -d /opt/syncotron/bin
 sudo chmod +x /opt/syncotron/bin/syncotron.sh
 ```
 
