@@ -1,9 +1,9 @@
 ﻿using log4net;
-using Sbs20.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Sbs20.Syncotron
@@ -196,15 +196,17 @@ namespace Sbs20.Syncotron
         private async Task PopulateActionsListAsync()
         {
             this.syncActionsBuilder = new SyncActionListBuilder(this.Context);
-            Task task = this.syncActionsBuilder.BuildAsync();
 
-            while (!task.IsInFinalState())
+            TimerCallback callback = (state) =>
             {
-                Task.Delay(10000).Wait();
                 log.InfoFormat("Scanned {0} local files; {1} remote files", this.LocalFileCount, this.RemoteFileCount);
+            };
+
+            using (Timer timer = new Timer(callback, null, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(10)))
+            {
+                await this.syncActionsBuilder.BuildAsync();
             }
 
-            await task;
             this.actions = this.syncActionsBuilder.Actions;
         }
 
