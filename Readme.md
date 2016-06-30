@@ -192,6 +192,9 @@ Although it was fixed a while ago, the fix hasn't got as far as the debian packa
 least, that's my working theory. Although it's annoying, syncotron keeps track of what it has
 and hasn't done yet, so you can just re-run it with the same parameters.
 
+### _wapi_handle_unref: Attempting to unref unused handle
+As above I suspect. Mono only.
+
 ### Http Timeout
 From time to time, the remote server will timeout. In these instances, Syncotron will simply
 terminate with an error. Any incomplete downloads will be re-attempted on the next execution.
