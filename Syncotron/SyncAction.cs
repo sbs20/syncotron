@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Sbs20.Syncotron
 {
@@ -51,6 +52,26 @@ namespace Sbs20.Syncotron
         public override string ToString()
         {
             return this.Type.ToString() + ":" + this.Key;
+        }
+
+        public async Task Reconstruct(ReplicatorContext context)
+        {
+            this.LocalPath = context.LocalPath + this.CommonPath;
+            this.RemotePath = context.RemotePath + this.CommonPath;
+
+            if (this.Type == SyncActionType.Download)
+            {
+                this.Remote = await context.CloudService.FileSelectAsync(this.RemotePath);
+            }
+            else if (this.Type == SyncActionType.Upload)
+            {
+                this.Local = await context.LocalFilesystem.FileSelectAsync(this.LocalPath);
+            }
+        }
+
+        public bool IsUnconstructed
+        {
+            get { return string.IsNullOrEmpty(this.LocalPath); }
         }
     }
 }

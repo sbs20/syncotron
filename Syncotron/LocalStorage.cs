@@ -1,5 +1,6 @@
 ﻿using log4net;
 using Sbs20.Data;
+using Sbs20.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -75,12 +76,21 @@ namespace Sbs20.Syncotron
                 );");
         }
 
+        private void ActionTableCreate()
+        {
+            this.dbController.ExecuteNonQuery(@"create table if not exists action (
+                    Type varchar(32),
+                    Path varchar(2048)
+                );");
+        }
+
         private void StructureCreate()
         {
             this.ScanTableDrop();
             this.ScanTableCreate();
             this.IndexTableCreate();
             this.SettingsTableCreate();
+            this.ActionTableCreate();
         }
 
         public T SettingsRead<T>(string key)
@@ -112,7 +122,7 @@ namespace Sbs20.Syncotron
                 }
             }
 
-            string sql = string.Format("delete from settings where key={0}; insert into settings values ({0}, {1});", 
+            string sql = string.Format("delete from settings where key={0}; insert into settings values ({0}, {1});",
                 DbController.ToParameter(key),
                 DbController.ToParameter(val));
 
@@ -237,6 +247,40 @@ select
         {
             string sql = @"select * from scan";
             return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r));
+        }
+
+        public void ActionDelete(SyncAction action)
+        {
+            string sql = string.Format(@"delete from action where Type={0} and Path={1};",
+                DbController.ToParameter(action.Type.ToString()),
+                DbController.ToParameter(action.CommonPath));
+
+            this.dbController.ExecuteNonQuery(sql);
+        }
+
+        public void ActionWrite(SyncAction action)
+        {
+            this.ActionDelete(action);
+            string sql = string.Format(@"insert into action values ({0}, {1});",
+                DbController.ToParameter(action.Type.ToString()),
+                DbController.ToParameter(action.CommonPath));
+
+            this.dbController.ExecuteNonQuery(sql);
+        }
+
+        public IEnumerable<SyncAction> ActionSelect()
+        {
+            string sql = "select * from action";
+            return this.dbController
+                .ExecuteAsEnumerableRows(sql)
+                .Select(r =>
+                {
+                    return new SyncAction
+                    {
+                        Type = DbController.ToString(r["Type"]).ToEnum<SyncActionType>(),
+                        CommonPath = DbController.ToString(r["Path"])
+                    };
+                });
         }
 
         public void BeginTransaction()

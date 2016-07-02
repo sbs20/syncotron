@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Sbs20.Extensions;
 
 namespace Sbs20.Syncotron
 {
@@ -170,10 +171,12 @@ namespace Sbs20.Syncotron
                 if (action.Local == null)
                 {
                     action.Local = await this.Context.LocalFilesystem.FileSelectAsync(action.LocalPath);
+                    this.LocalFileCount++;
                 }
                 else if (action.Remote == null)
                 {
                     action.Remote = await this.Context.CloudService.FileSelectAsync(action.RemotePath);
+                    this.RemoteFileCount++;
                 }
             }
         }
@@ -208,6 +211,21 @@ namespace Sbs20.Syncotron
                     "LocalPath is empty or does not exist, but this job has previously run. Aborting to protect data.");
             }
 
+            // Do we already have stored actions?
+            var previous = this.Context.LocalStorage.ActionSelect();
+            if (previous.Count() > 0)
+            {
+                foreach (var action in previous)
+                {
+                    this.Actions.Add(action);
+                }
+
+                this.LocalCursor = this.Context.LocalStorage.SettingsRead<string>("PendingLocalCursor");
+                this.RemoteCursor = this.Context.LocalStorage.SettingsRead<string>("PendingRemoteCursor");
+                return;
+            }
+
+            // Now scan for new ones
             var local = this.ScanLocalAsync();
             var remote = this.ScanRemoteAsync();
             await local;
@@ -221,17 +239,32 @@ namespace Sbs20.Syncotron
                 await this.FurtherScanForContinuation();
             }
 
+            var actions = new List<SyncAction>();
             foreach (var action in this.ActionDictionary.Values)
             {
                 SyncActionType type = this.TypeChooser.Choose(action);
                 if (type != SyncActionType.None)
                 {
                     action.Type = type;
-                    this.Actions.Add(action);
+                    actions.Add(action);
                 }
             }
 
-            this.Actions = this.Actions.OrderBy(a => a.Key).ToList();
+            this.Actions.Add(actions.Where(a => a.Type == SyncActionType.DeleteLocal).OrderByDescending(a => a.Key.Length));
+            this.Actions.Add(actions.Where(a => a.Type == SyncActionType.DeleteRemote).OrderByDescending(a => a.Key.Length));
+            this.Actions.Add(actions.Where(a => a.Type == SyncActionType.Download).OrderBy(a => a.Key.Length));
+            this.Actions.Add(actions.Where(a => a.Type == SyncActionType.Upload).OrderBy(a => a.Key.Length));
+            this.Actions.Add(actions.Where(a => a.Type == SyncActionType.KeepBoth));
+
+            this.Context.LocalStorage.BeginTransaction();
+            foreach (var action in this.Actions)
+            {
+                this.Context.LocalStorage.ActionWrite(action);
+            }
+
+            this.Context.LocalStorage.EndTransaction();
+            this.Context.LocalStorage.SettingsWrite("PendingLocalCursor", this.LocalCursor);
+            this.Context.LocalStorage.SettingsWrite("PendingRemoteCursor", this.RemoteCursor);
         }
     }
 }

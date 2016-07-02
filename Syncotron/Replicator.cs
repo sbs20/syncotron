@@ -160,6 +160,12 @@ namespace Sbs20.Syncotron
         private async Task DoActionAsync(SyncAction action)
         {
             log.Debug("DoAction(" + action.Key + ")");
+
+            if (action.IsUnconstructed)
+            {
+                await action.Reconstruct(this.Context);
+            }
+
             this.OnActionStart(action);
 
             switch (action.Type)
@@ -190,6 +196,7 @@ namespace Sbs20.Syncotron
                     throw new NotImplementedException();
             }
 
+            this.Context.LocalStorage.ActionDelete(action);
             this.OnActionComplete(action);
         }
 
