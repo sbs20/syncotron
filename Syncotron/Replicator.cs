@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -296,6 +297,11 @@ namespace Sbs20.Syncotron
         public void Dispose()
         {
             this.Context.IsRunning = false;
+        }
+
+        public string Version
+        {
+            get { return Assembly.GetExecutingAssembly().GetName().Version.ToString(); }
         }
     }
 }

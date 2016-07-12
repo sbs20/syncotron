@@ -53,6 +53,11 @@ namespace Sbs20.Syncotron
             return string.Format("syncotron_{0}.db", this.FileSuffix());
         }
 
+        public string LogFilename()
+        {
+            return string.Format("syncotron_{0}_{1:yyyy-MM-dd}.log", this.FileSuffix(), DateTime.Today);
+        }
+
         public LocalStorage LocalStorage
         {
             get

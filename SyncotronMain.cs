@@ -85,18 +85,6 @@ namespace Sbs20
             return context;
         }
 
-        private static string Version()
-        {
-            try
-            {
-                return Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         static void Main(string[] args)
         {
             try
@@ -114,12 +102,12 @@ namespace Sbs20
                     return;
                 }
 
-                GlobalContext.Properties["LogSuffix"] = context.FileSuffix();
+                GlobalContext.Properties["LogFilename"] = context.LogFilename();
                 log4net.Config.XmlConfigurator.Configure();
 
                 using (Replicator replicator = new Replicator(context))
                 {
-                    log.InfoFormat("Starting syncotron ({0})", Version());
+                    log.InfoFormat("Starting syncotron ({0})", replicator.Version);
                     log.InfoFormat("Current log / db: syncotron_{0}.xxx", context.FileSuffix());
                     log.InfoFormat("CommandType: {0}", context.CommandType.ToString());
                     log.InfoFormat("ScanMode: {0}", context.ScanMode.ToString());
