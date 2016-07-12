@@ -3,6 +3,7 @@ using Sbs20.Common;
 using Sbs20.Extensions;
 using Sbs20.Syncotron;
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Sbs20
@@ -22,7 +23,6 @@ namespace Sbs20
                 RemotePath = arguments["RemotePath"] ?? string.Empty,
                 CommandType = CommandType.Autosync,
                 SyncDirection = SyncDirection.TwoWay,
-                MaximumConcurrency = 3,
                 HashProviderType = HashProviderType.DateTimeAndSize,
                 Exclusions = { "*/.@__Thumb*", "*/.dropbox" },
                 IgnoreCertificateErrors = false,
@@ -85,6 +85,18 @@ namespace Sbs20
             return context;
         }
 
+        private static string Version()
+        {
+            try
+            {
+                return Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         static void Main(string[] args)
         {
             try
@@ -107,7 +119,7 @@ namespace Sbs20
 
                 using (Replicator replicator = new Replicator(context))
                 {
-                    log.Info("Starting syncotron");
+                    log.InfoFormat("Starting syncotron ({0})", Version());
                     log.InfoFormat("Current log / db: syncotron_{0}.xxx", context.FileSuffix());
                     log.InfoFormat("CommandType: {0}", context.CommandType.ToString());
                     log.InfoFormat("ScanMode: {0}", context.ScanMode.ToString());

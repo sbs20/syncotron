@@ -19,7 +19,6 @@ namespace Sbs20.Syncotron
         public IList<string> Exclusions { get; private set; }
         public bool IgnoreCertificateErrors { get; set; }
         public HashProviderType HashProviderType { get; set; }
-        public int MaximumConcurrency { get; set; }
         public bool IsDebug { get; set; }
         public ConflictStrategy ConflictStrategy { get; set; }
         public bool Recover { get; set; }
@@ -80,7 +79,6 @@ namespace Sbs20.Syncotron
             this.LocalStorage.SettingsWrite("Exclusions", this.Exclusions);
             this.LocalStorage.SettingsWrite("IgnoreCertificateErrors", this.IgnoreCertificateErrors);
             this.LocalStorage.SettingsWrite("HashProviderType", this.HashProviderType);
-            this.LocalStorage.SettingsWrite("MaximumConcurrency", this.MaximumConcurrency);
             this.LocalStorage.SettingsWrite("IsDebug", this.IsDebug);
             this.LocalStorage.SettingsWrite("ConflictStrategy", this.ConflictStrategy);
         }

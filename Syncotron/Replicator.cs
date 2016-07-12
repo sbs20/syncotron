@@ -221,48 +221,10 @@ namespace Sbs20.Syncotron
         {
             this.TransferStart = DateTime.Now;
 
-            List<Task> tasks = new List<Task>();
             foreach (var action in this.actions)
             {
-                bool abort = false;
-                Task task = this.DoActionAsync(action);
-                tasks.Add(task);
-
-                if (this.Context.MaximumConcurrency == 1)
-                {
-                    await task;
-                }
-                else
-                {
-                    while (tasks.Count >= this.Context.MaximumConcurrency)
-                    {
-                        await Task.Delay(100);
-                        int index = 0;
-                        while (index < tasks.Count)
-                        {
-                            var t = tasks[index];
-                            if (t.IsCompleted)
-                            {
-                                tasks.Remove(t);
-                                index--;
-                            }
-                            else if (t.IsFaulted)
-                            {
-                                abort = true;
-                                break;
-                            }
-
-                            index++;
-                        }
-
-                        if (abort) break;
-                    }
-
-                    if (abort) break;
-                }
+                await this.DoActionAsync(action);
             }
-
-            await Task.WhenAll(tasks);
         }
 
         public async Task StartAsync()
