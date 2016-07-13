@@ -80,8 +80,6 @@ namespace Sbs20
                 }
             }
 
-            context.CleanAndPersist();
-
             return context;
         }
 

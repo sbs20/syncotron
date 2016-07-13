@@ -55,6 +55,8 @@ namespace Sbs20.Syncotron
             }
 
             context.IsRunning = true;
+
+            context.CleanAndPersist();
         }
 
         private void OnActionStart(SyncAction action)
