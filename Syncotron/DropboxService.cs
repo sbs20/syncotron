@@ -69,8 +69,7 @@ namespace Sbs20.Syncotron
             {
                 try
                 {
-                    var client = this.Client;
-                    return client != null;
+                    return this.Client != null;
                 }
                 catch
                 {
