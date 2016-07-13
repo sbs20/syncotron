@@ -179,8 +179,12 @@ namespace Sbs20.Syncotron
                 case SyncActionType.Download:
                     await this.Context.CloudService.DownloadAsync(action.Remote);
                     var item = this.Context.LocalFilesystem.ToFileItem(action.LocalPath);
-                    item.ServerRev = action.Remote.ServerRev;
-                    this.Context.LocalStorage.IndexWrite(item);
+                    if (item != null)
+                    {
+                        item.ServerRev = action.Remote.ServerRev;
+                        this.Context.LocalStorage.IndexWrite(item);
+                    }
+
                     break;
 
                 case SyncActionType.DeleteRemote:

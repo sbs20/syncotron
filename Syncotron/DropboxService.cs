@@ -264,11 +264,25 @@ namespace Sbs20.Syncotron
 
                 if (remoteFile != null)
                 {
-                    var response = await this.Client.Files.DownloadAsync(new DownloadArg(remoteFile.PathDisplay));
-
-                    using (var downloadStream = await response.GetContentAsStreamAsync())
+                    try
                     {
-                        await this.context.LocalFilesystem.WriteAsync(localName, downloadStream, remoteFile.ClientModified);
+                        var response = await this.Client.Files.DownloadAsync(new DownloadArg(remoteFile.PathDisplay));
+
+                        using (var downloadStream = await response.GetContentAsStreamAsync())
+                        {
+                            await this.context.LocalFilesystem.WriteAsync(localName, downloadStream, remoteFile.ClientModified);
+                        }
+                    }
+                    catch (ApiException<DownloadError> ex)
+                    {
+                        if (ex.Message.StartsWith("path/restricted_content"))
+                        {
+                            log.WarnFormat("Unable to download {0} [{1}]", fileItem.Path, ex.Message);
+                        }
+                        else
+                        {
+                            throw;
+                        }
                     }
 
                     log.Debug("DownloadAsync():done");

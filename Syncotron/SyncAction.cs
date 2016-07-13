@@ -21,7 +21,7 @@ namespace Sbs20.Syncotron
 
         public string Key
         {
-            get { return this.CommonPath.ToLowerInvariant(); }
+            get { return this.CommonPath != null ? this.CommonPath.ToLowerInvariant() : string.Empty; }
         }
 
         public FileItem PrimaryItem
