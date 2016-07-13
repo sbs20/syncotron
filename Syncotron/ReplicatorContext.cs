@@ -58,6 +58,11 @@ namespace Sbs20.Syncotron
             return string.Format("syncotron_{0}_{1:yyyy-MM-dd}.log", this.FileSuffix(), DateTime.Today);
         }
 
+        public string LockFilename()
+        {
+            return string.Format("syncotron_{0}.lok", this.FileSuffix());
+        }
+
         public LocalStorage LocalStorage
         {
             get
@@ -156,10 +161,25 @@ namespace Sbs20.Syncotron
             }
         }
 
+        private System.IO.FileInfo LockFileInfo
+        {
+            get { return new System.IO.FileInfo(this.LockFilename()); }
+        }
+
         public bool IsRunning
         {
-            get { return this.LocalStorage.SettingsRead<bool>("IsRunning"); }
-            set { this.LocalStorage.SettingsWrite("IsRunning", value); }
+            get { return this.LockFileInfo.Exists; }
+            set
+            {
+                if (value)
+                {
+                    this.LockFileInfo.Create();
+                }
+                else
+                {
+                    this.LockFileInfo.Delete();
+                }
+            }
         }
 
         public string RemoteCursor
