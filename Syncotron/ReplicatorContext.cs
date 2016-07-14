@@ -5,14 +5,15 @@ namespace Sbs20.Syncotron
 {
     public class ReplicatorContext
     {
+        private string localPath;
+        private string remotePath;
+
         private const int DefaultHttpReadTimeoutInSeconds = 30;
         private LocalStorage localStorage;
         private LocalFilesystemService localFilesystem;
         private ICloudService cloudService;
         public ISettings Settings { get; private set; }
 
-        public string LocalPath { get; set; }
-        public string RemotePath { get; set; }
         public CommandType CommandType { get; set; }
         public SyncDirection SyncDirection { get; set; }
         public FileService RemoteService { get; set; }
@@ -35,6 +36,18 @@ namespace Sbs20.Syncotron
             this.IgnoreCertificateErrors = false;
             this.HashProviderType = HashProviderType.DateTimeAndSize;
             this.HttpReadTimeoutInSeconds = DefaultHttpReadTimeoutInSeconds;
+        }
+
+        public string LocalPath
+        {
+            get { return this.localPath; }
+            set { this.localPath = AsDirectoryPath(value); }
+        }
+
+        public string RemotePath
+        {
+            get { return this.remotePath; }
+            set { this.remotePath = AsDirectoryPath(value); }
         }
 
         public string FileSuffix()
@@ -76,11 +89,8 @@ namespace Sbs20.Syncotron
             }
         }
 
-        public void CleanAndPersist()
+        public void Persist()
         {
-            this.LocalPath = AsDirectoryPath(this.LocalPath);
-            this.RemotePath = AsDirectoryPath(this.RemotePath);
-
             this.LocalStorage.SettingsWrite("LocalPath", this.LocalPath);
             this.LocalStorage.SettingsWrite("RemotePath", this.RemotePath);
             this.LocalStorage.SettingsWrite("CommandType", this.CommandType);
