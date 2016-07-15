@@ -185,7 +185,7 @@ namespace Sbs20
             }
             catch (AnotherInstanceIsRunningException)
             {
-                log.Info("Syncotron is already running. Aborting.");
+                log.Info("Syncotron is already running");
             }
             catch (Exception ex)
             {
