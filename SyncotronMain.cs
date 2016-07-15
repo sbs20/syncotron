@@ -105,6 +105,7 @@ namespace Sbs20
 
                 using (Replicator replicator = new Replicator(context))
                 {
+                    log.Info("=======================================================");
                     log.InfoFormat("Starting syncotron ({0})", replicator.Version);
                     log.InfoFormat("Current log / db: syncotron_{0}.xxx", context.FileSuffix());
                     log.InfoFormat("CommandType: {0}", context.CommandType.ToString());
