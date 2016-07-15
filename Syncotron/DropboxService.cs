@@ -12,6 +12,8 @@ namespace Sbs20.Syncotron
 {
     public class DropboxService : ICloudService
     {
+        private const string DropboxErrorRestrictedContent = "path/restricted_content";
+
         private static readonly ILog log = LogManager.GetLogger(typeof(DropboxService));
         private FullAccount currentAccount = null;
         private DropboxClient client = null;
@@ -275,7 +277,7 @@ namespace Sbs20.Syncotron
                     }
                     catch (ApiException<DownloadError> ex)
                     {
-                        if (ex.Message.StartsWith("path/restricted_content"))
+                        if (ex.Message.StartsWith(DropboxErrorRestrictedContent))
                         {
                             log.WarnFormat("Unable to download {0} [{1}]", fileItem.Path, ex.Message);
                         }

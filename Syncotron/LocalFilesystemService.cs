@@ -259,7 +259,10 @@ namespace Sbs20.Syncotron
             }
             catch (TimeoutException)
             {
-                tempFile.Delete();
+                // The file might still be locked. Pause for a moment since this is a
+                // fatal error and then try deleting the file.
+                await Task.Delay(TimeSpan.FromSeconds(2));
+                try { tempFile.Delete(); } catch { }
                 throw;
             }
 

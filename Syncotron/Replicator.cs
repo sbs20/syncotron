@@ -27,7 +27,7 @@ namespace Sbs20.Syncotron
         public event EventHandler<SyncAction> ActionComplete;
         public event EventHandler<Exception> Exception;
         public event EventHandler<EventArgs> AnalysisComplete;
-        public event EventHandler<EventArgs> Complete;
+        public event EventHandler<EventArgs> Finish;
 
         public ReplicatorContext Context { get; private set; }
 
@@ -102,11 +102,11 @@ namespace Sbs20.Syncotron
             }
         }
 
-        private void OnComplete()
+        private void OnFinish()
         {
-            if (this.Complete != null)
+            if (this.Finish != null)
             {
-                this.Complete(this, null);
+                this.Finish(this, null);
             }
         }
 
@@ -290,7 +290,6 @@ namespace Sbs20.Syncotron
                         this.Context.LocalCursor = this.syncActionsBuilder.LocalCursor;
                         this.Context.RemoteCursor = this.syncActionsBuilder.RemoteCursor;
                         this.Context.LocalStorage.SettingsWrite("LastSync", DateTime.Now);
-                        this.OnComplete();
                         break;
                 }
             }
@@ -298,6 +297,8 @@ namespace Sbs20.Syncotron
             {
                 this.OnException(ex);
             }
+
+            this.OnFinish();
         }
 
         public void Dispose()

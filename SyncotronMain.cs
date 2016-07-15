@@ -117,7 +117,7 @@ namespace Sbs20
 
                     replicator.ActionComplete += (s, a) =>
                     {
-                        log.Info(a.ToString() + " [Complete: " + FileSizeFormatter.Format(a.PrimaryItem.Size) + "]");
+                        log.InfoFormat("{0} [Complete: {1}]", a.ToString(), FileSizeFormatter.Format(a.PrimaryItem.Size));
                     };
 
                     replicator.AnalysisComplete += (s, e) =>
@@ -128,9 +128,9 @@ namespace Sbs20
                         log.InfoFormat("Actions found: {0}", replicator.ActionCount);
                     };
 
-                    replicator.Complete += (s, e) =>
+                    replicator.Finish += (s, e) =>
                     {
-                        log.InfoFormat("Actions completed: {0}", replicator.ActionsCompleteCount);
+                        log.InfoFormat("Actions completed: {0} / {1}", replicator.ActionsCompleteCount, replicator.ActionCount);
                         log.InfoFormat("Download: {0:0.00}mb (rate: {1:0.00}mb/s)", replicator.DownloadedMeg, replicator.DownloadRate);
                         log.InfoFormat("Upload: {0:0.00}mb (rate {1:0.00}mb/s)", replicator.UploadedMeg, replicator.UploadRate);
                         log.InfoFormat("Duration: {0}", replicator.Duration);
@@ -138,7 +138,14 @@ namespace Sbs20
 
                     replicator.Exception += (s, e) =>
                     {
-                        log.Error(e);
+                        if (e is TimeoutException)
+                        {
+                            log.Warn(e.Message);
+                        }
+                        else
+                        {
+                            log.Error(e);
+                        }
                     };
 
                     if (!context.CloudService.IsAuthorised)
