@@ -51,7 +51,7 @@ namespace Sbs20.Syncotron
 
             if (!context.Recover && context.IsRunning)
             {
-                throw new InvalidOperationException("Replicator already running");
+                throw new AnotherInstanceIsRunningException();
             }
 
             context.IsRunning = true;

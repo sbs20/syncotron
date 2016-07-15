@@ -183,7 +183,11 @@ namespace Sbs20
                     Console.ReadLine();
                 }
             }
-            catch (InvalidOperationException ex)
+            catch (AnotherInstanceIsRunningException)
+            {
+                log.Info("Syncotron is already running. Aborting.");
+            }
+            catch (Exception ex)
             {
                 log.Error(ex);
             }

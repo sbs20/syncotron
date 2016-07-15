@@ -74,6 +74,7 @@
     <Compile Include="Common\Base32Encoding.cs" />
     <Compile Include="Extensions\IListExtensions.cs" />
     <Compile Include="Extensions\TaskExtensions.cs" />
+    <Compile Include="Syncotron\AnotherInstanceIsRunningException.cs" />
     <Compile Include="Syncotron\Diagnostics\Json.cs" />
     <Compile Include="Syncotron\Diagnostics\Serialiserabler.cs" />
     <Compile Include="Syncotron\FileItemIndex.cs" />
