@@ -248,7 +248,7 @@ namespace Sbs20.Syncotron
             {
                 using (Stream localStream = tempFile.OpenWrite())
                 {
-                    byte[] buffer = new byte[1 << 16];
+                    byte[] buffer = new byte[ReplicatorContext.HttpChunkSize];
                     int read;
                     while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)
                         .WithTimeout(TimeSpan.FromSeconds(this.context.HttpReadTimeoutInSeconds))) > 0)

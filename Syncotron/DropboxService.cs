@@ -198,58 +198,53 @@ namespace Sbs20.Syncotron
                 false,
                 file.LastModified);
 
-            // One meg
-            if (file.Size > 1 << 20)
+            // Use chunked upload
+            using (Stream stream = localFile.OpenRead())
             {
-                // Use chunked upload for larger files
-                using (Stream stream = localFile.OpenRead())
+                int chunkSize = ReplicatorContext.HttpChunkSize;
+                int chunkCount = (int)Math.Ceiling((double)file.Size / chunkSize);
+
+                byte[] buffer = new byte[chunkSize];
+                string sessionId = null;
+
+                for (var index = 0; index < chunkCount; index++)
                 {
-                    int chunkSize = 1024 * 128;
-                    int numChunks = (int)Math.Ceiling((double)file.Size / chunkSize);
+                    var read = await stream.ReadAsync(buffer, 0, chunkSize);
 
-                    byte[] buffer = new byte[chunkSize];
-                    string sessionId = null;
-
-                    for (var index = 0; index < numChunks; index++)
+                    using (MemoryStream memoryStream = new MemoryStream(buffer, 0, read))
                     {
-                        var read = await stream.ReadAsync(buffer, 0, chunkSize);
-
-                        using (MemoryStream memoryStream = new MemoryStream(buffer, 0, read))
+                        if (index == 0)
                         {
-                            if (index == 0)
+                            var result = await this.Client.Files
+                                .UploadSessionStartAsync(body: memoryStream)
+                                .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
+
+                            sessionId = result.SessionId;
+                        }
+                        else
+                        {
+                            UploadSessionCursor cursor = new UploadSessionCursor(sessionId, (ulong)(chunkSize * index));
+
+                            if (index == chunkCount - 1)
                             {
-                                var result = await this.Client.Files.UploadSessionStartAsync(body: memoryStream);
-                                sessionId = result.SessionId;
+                                var result = await this.Client.Files
+                                    .UploadSessionFinishAsync(cursor, commitInfo, memoryStream)
+                                    .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
+
+                                file.ServerRev = result.Rev;
                             }
                             else
                             {
-                                UploadSessionCursor cursor = new UploadSessionCursor(sessionId, (ulong)(chunkSize * index));
-
-                                if (index == numChunks - 1)
-                                {
-                                    var result = await this.Client.Files.UploadSessionFinishAsync(cursor, commitInfo, memoryStream);
-                                    file.ServerRev = result.Rev;
-                                }
-                                else
-                                {
-                                    await this.Client.Files.UploadSessionAppendV2Async(cursor, body: memoryStream);
-                                }
+                                await this.Client.Files
+                                    .UploadSessionAppendV2Async(cursor, body: memoryStream)
+                                    .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
                             }
                         }
                     }
                 }
             }
-            else
-            {
-                // For smaller files, just upload
-                using (Stream fileStream = localFile.OpenRead())
-                {
-                    var result = await this.Client.Files.UploadAsync(commitInfo, fileStream);
-                    file.ServerRev = result.Rev;
-                }
 
-                log.Debug("UploadAsync():done");
-            }
+            log.Debug("UploadAsync():done");
         }
 
         public async Task DownloadAsync(FileItem fileItem, String localName)

@@ -9,9 +9,14 @@ namespace Sbs20.Syncotron
         private string remotePath;
 
         private const int DefaultHttpReadTimeoutInSeconds = 30;
+        private const int DefaultHttpWriteTimeoutInSeconds = 30;
+
         private LocalStorage localStorage;
         private LocalFilesystemService localFilesystem;
         private ICloudService cloudService;
+
+        public const int HttpChunkSize = 64 * 1024;
+
         public ISettings Settings { get; private set; }
 
         public CommandType CommandType { get; set; }
@@ -24,6 +29,7 @@ namespace Sbs20.Syncotron
         public ConflictStrategy ConflictStrategy { get; set; }
         public bool Recover { get; set; }
         public int HttpReadTimeoutInSeconds { get; set; }
+        public int HttpWriteTimeoutInSeconds { get; set; }
 
         public ReplicatorContext()
         {
@@ -36,6 +42,7 @@ namespace Sbs20.Syncotron
             this.IgnoreCertificateErrors = false;
             this.HashProviderType = HashProviderType.DateTimeAndSize;
             this.HttpReadTimeoutInSeconds = DefaultHttpReadTimeoutInSeconds;
+            this.HttpWriteTimeoutInSeconds = DefaultHttpWriteTimeoutInSeconds;
         }
 
         public string LocalPath

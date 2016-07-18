@@ -16,6 +16,16 @@ namespace Sbs20.Extensions
             throw new TimeoutException();
         }
 
+        public static async Task WithTimeout(this Task task, TimeSpan timeout)
+        {
+            if (task == await Task.WhenAny(task, Task.Delay(timeout)))
+            {
+                await task;
+            }
+
+            throw new TimeoutException();
+        }
+
         public static bool IsInFinalState(this Task task)
         {
             return task.Status == TaskStatus.Faulted ||
