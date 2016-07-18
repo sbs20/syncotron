@@ -21,6 +21,7 @@ namespace Sbs20.Extensions
             if (task == await Task.WhenAny(task, Task.Delay(timeout)))
             {
                 await task;
+                return;
             }
 
             throw new TimeoutException();
