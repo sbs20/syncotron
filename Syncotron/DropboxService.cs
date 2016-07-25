@@ -192,12 +192,6 @@ namespace Sbs20.Syncotron
             // Note - this is not ensuring the name is a valid dropbox file name
             string remoteFileName = this.context.ToOppositePath(file);
 
-            CommitInfo commitInfo = new CommitInfo(
-                remoteFileName,
-                WriteMode.Overwrite.Instance,
-                false,
-                file.LastModified);
-
             // Use chunked upload
             using (Stream stream = localFile.OpenRead())
             {
@@ -209,7 +203,9 @@ namespace Sbs20.Syncotron
 
                 for (var index = 0; index < chunkCount; index++)
                 {
-                    var read = await stream.ReadAsync(buffer, 0, chunkSize);
+                    var read = await stream
+                        .ReadAsync(buffer, 0, chunkSize)
+                        .WithTimeout(TimeSpan.FromSeconds(this.context.HttpReadTimeoutInSeconds));
 
                     using (MemoryStream memoryStream = new MemoryStream(buffer, 0, read))
                     {
@@ -225,19 +221,26 @@ namespace Sbs20.Syncotron
                         {
                             UploadSessionCursor cursor = new UploadSessionCursor(sessionId, (ulong)(chunkSize * index));
 
-                            if (index == chunkCount - 1)
+                            bool isLastChunk = index == chunkCount - 1;
+                            if (!isLastChunk)
                             {
+                                await this.Client.Files
+                                    .UploadSessionAppendV2Async(cursor, body: memoryStream)
+                                    .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
+                            }
+                            else
+                            {
+                                CommitInfo commitInfo = new CommitInfo(
+                                    remoteFileName,
+                                    WriteMode.Overwrite.Instance,
+                                    false,
+                                    file.LastModified);
+
                                 var result = await this.Client.Files
                                     .UploadSessionFinishAsync(cursor, commitInfo, memoryStream)
                                     .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
 
                                 file.ServerRev = result.Rev;
-                            }
-                            else
-                            {
-                                await this.Client.Files
-                                    .UploadSessionAppendV2Async(cursor, body: memoryStream)
-                                    .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
                             }
                         }
                     }
