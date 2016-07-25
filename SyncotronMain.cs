@@ -109,6 +109,7 @@ namespace Sbs20
                     log.InfoFormat("Starting syncotron ({0})", replicator.Version);
                     log.InfoFormat("Current log / db: syncotron_{0}.xxx", context.FileSuffix());
                     log.InfoFormat("CommandType: {0}", context.CommandType.ToString());
+                    log.InfoFormat("Direction: {0}", context.SyncDirection.ToString());
                     log.InfoFormat("ScanMode: {0}", context.ScanMode.ToString());
 
                     replicator.ActionStart += (s, a) =>
