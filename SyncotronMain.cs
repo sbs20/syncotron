@@ -119,7 +119,7 @@ namespace Sbs20
 
                     replicator.ActionComplete += (s, a) =>
                     {
-                        log.InfoFormat("{0} [Complete: {1}]", a.ToString(), FileSizeFormatter.Format(a.PrimaryItem.Size));
+                        log.InfoFormat("{0} [Complete: {1}]", a.ToString(), FileSizeFormatter.Format(a.Size));
                     };
 
                     replicator.AnalysisComplete += (s, e) =>

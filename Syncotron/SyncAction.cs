@@ -24,7 +24,7 @@ namespace Sbs20.Syncotron
             get { return this.CommonPath != null ? this.CommonPath.ToLowerInvariant() : string.Empty; }
         }
 
-        public FileItem PrimaryItem
+        private FileItem PrimaryItem
         {
             get
             {
@@ -47,6 +47,11 @@ namespace Sbs20.Syncotron
                         throw new InvalidOperationException();
                 }
             }
+        }
+
+        public ulong Size
+        {
+            get { return this.PrimaryItem != null ? this.PrimaryItem.Size : 0; }
         }
 
         public override string ToString()

@@ -13,6 +13,7 @@ namespace Sbs20.Syncotron
     public class DropboxService : ICloudService
     {
         private const string DropboxErrorRestrictedContent = "path/restricted_content";
+        private const string DropboxPathNotFound = "path/not_found/";
 
         private static readonly ILog log = LogManager.GetLogger(typeof(DropboxService));
         private FullAccount currentAccount = null;
@@ -250,13 +251,13 @@ namespace Sbs20.Syncotron
             log.Debug("UploadAsync():done");
         }
 
-        public async Task DownloadAsync(FileItem fileItem, String localName)
+        public async Task DownloadAsync(FileItem fileItem, string localPath)
         {
             log.Debug("DownloadAsync():Start");
 
             if (fileItem.IsFolder)
             {
-                this.context.LocalFilesystem.CreateDirectory(localName);
+                this.context.LocalFilesystem.CreateDirectory(localPath);
             }
             else
             {
@@ -270,13 +271,18 @@ namespace Sbs20.Syncotron
 
                         using (var downloadStream = await response.GetContentAsStreamAsync())
                         {
-                            await this.context.LocalFilesystem.WriteAsync(localName, downloadStream, remoteFile.ClientModified);
+                            await this.context.LocalFilesystem.WriteAsync(localPath, downloadStream, remoteFile.ClientModified);
                         }
                     }
                     catch (ApiException<DownloadError> ex)
                     {
                         if (ex.Message.StartsWith(DropboxErrorRestrictedContent))
                         {
+                            log.WarnFormat("Unable to download {0} [{1}]", fileItem.Path, ex.Message);
+                        }
+                        else if (ex.Message.StartsWith(DropboxPathNotFound))
+                        {
+                            // The file has been deleted before we got a chance to get it. Ignore
                             log.WarnFormat("Unable to download {0} [{1}]", fileItem.Path, ex.Message);
                         }
                         else

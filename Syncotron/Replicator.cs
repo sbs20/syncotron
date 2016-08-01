@@ -69,20 +69,23 @@ namespace Sbs20.Syncotron
 
         private void OnActionComplete(SyncAction action)
         {
-            if (action.Type == SyncActionType.Download)
-            {
-                this.DownloadedBytes += action.Remote.Size;
-            }
-            else if (action.Type == SyncActionType.Upload)
-            {
-                this.UploadedBytes += action.Local.Size;
-            }
-
             this.ActionsCompleteCount++;
 
-            if (this.ActionComplete != null)
+            if (action.Type != SyncActionType.None)
             {
-                this.ActionComplete(this, action);
+                if (action.Type == SyncActionType.Download)
+                {
+                    this.DownloadedBytes += action.Size;
+                }
+                else if (action.Type == SyncActionType.Upload)
+                {
+                    this.UploadedBytes += action.Size;
+                }
+
+                if (this.ActionComplete != null)
+                {
+                    this.ActionComplete(this, action);
+                }
             }
         }
 
@@ -179,12 +182,19 @@ namespace Sbs20.Syncotron
                     break;
 
                 case SyncActionType.Download:
-                    await this.Context.CloudService.DownloadAsync(action.Remote);
-                    var item = this.Context.LocalFilesystem.ToFileItem(action.LocalPath);
-                    if (item != null)
+                    if (action.Remote != null)
                     {
-                        item.ServerRev = action.Remote.ServerRev;
-                        this.Context.LocalStorage.IndexWrite(item);
+                        await this.Context.CloudService.DownloadAsync(action.Remote);
+                        var item = this.Context.LocalFilesystem.ToFileItem(action.LocalPath);
+                        if (item != null)
+                        {
+                            item.ServerRev = action.Remote.ServerRev;
+                            this.Context.LocalStorage.IndexWrite(item);
+                        }
+                    }
+                    else
+                    {
+                        log.WarnFormat("Remote file ({0}) no longer exists. Ignoring.", action.RemotePath);
                     }
 
                     break;

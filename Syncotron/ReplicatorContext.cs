@@ -126,23 +126,38 @@ namespace Sbs20.Syncotron
             return p;
         }
 
+        public string ToCommonPath(string path, FileService fileService)
+        {
+            string outputPath = fileService == FileService.Local ?
+                path.Substring(this.LocalPath.Length) :
+                path.Substring(this.RemotePath.Length);
+
+            return AsUnixPath(outputPath);
+        }
+
         public string ToCommonPath(FileItem file)
         {
-            string path = file.Source == FileService.Local ?
-                file.Path.Substring(this.LocalPath.Length) :
-                file.Path.Substring(this.RemotePath.Length);
+            return ToCommonPath(file.Path, file.Source);
+        }
 
-            return AsUnixPath(path);
+        public string ToLocalPath(string path, FileService fileService)
+        {
+            return AsUnixPath(this.LocalPath + this.ToCommonPath(path, fileService));
         }
 
         public string ToLocalPath(FileItem file)
         {
-            return AsUnixPath(this.LocalPath + this.ToCommonPath(file));
+            return ToLocalPath(file.Path, file.Source);
+        }
+
+        public string ToRemotePath(string path, FileService fileService)
+        {
+            return AsUnixPath(this.RemotePath + this.ToCommonPath(path, fileService));
         }
 
         public string ToRemotePath(FileItem file)
         {
-            return AsUnixPath(this.RemotePath + this.ToCommonPath(file));
+            return ToRemotePath(file.Path, file.Source);
         }
 
         public string ToOppositePath(FileItem file)
