@@ -202,6 +202,11 @@ namespace Sbs20.Syncotron
                 byte[] buffer = new byte[chunkSize];
                 string sessionId = null;
 
+                var commitInfo = new CommitInfo(remoteFileName,
+                    WriteMode.Overwrite.Instance,
+                    false,
+                    file.LastModified);
+
                 for (var index = 0; index < chunkCount; index++)
                 {
                     var read = await stream
@@ -210,7 +215,15 @@ namespace Sbs20.Syncotron
 
                     using (MemoryStream memoryStream = new MemoryStream(buffer, 0, read))
                     {
-                        if (index == 0)
+                        if (chunkCount == 1)
+                        {
+                            var result = await this.Client.Files
+                                .UploadAsync(commitInfo, memoryStream)
+                                .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
+
+                            file.ServerRev = result.Rev;
+                        }
+                        else if (index == 0)
                         {
                             var result = await this.Client.Files
                                 .UploadSessionStartAsync(body: memoryStream)
@@ -231,12 +244,6 @@ namespace Sbs20.Syncotron
                             }
                             else
                             {
-                                CommitInfo commitInfo = new CommitInfo(
-                                    remoteFileName,
-                                    WriteMode.Overwrite.Instance,
-                                    false,
-                                    file.LastModified);
-
                                 var result = await this.Client.Files
                                     .UploadSessionFinishAsync(cursor, commitInfo, memoryStream)
                                     .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
