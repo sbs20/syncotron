@@ -205,7 +205,10 @@ namespace Sbs20.Syncotron
             {
                 if (value)
                 {
-                    this.LockFileInfo.Create();
+                    using (var stream = this.LockFileInfo.Create())
+                    {
+                        stream.WriteByte(76);
+                    }
                 }
                 else
                 {
