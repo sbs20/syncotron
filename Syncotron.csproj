@@ -148,19 +148,26 @@
     <Error Condition="!Exists('packages\Mono.Data.Sqlite.Portable.1.0.3.5\tools\Mono.Data.Sqlite.Portable.targets')" Text="This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them." />
     <Error Condition="Exists('packages\Mono.Data.Sqlite.Portable.1.0.3.5\tools\Mono.Data.Sqlite.Portable.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build." />
   </Target>
+  <Target Name="PostBuildMacros">
+    <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
+      <Output TaskParameter="Assemblies" ItemName="Targets" />
+    </GetAssemblyIdentity>
+    <ItemGroup>
+      <VersionNumber Include="@(Targets->'%(Version)')"/>
+    </ItemGroup>
+  </Target>
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Q /Y $(ProjectDir)lib\sqlite3.dll .
-xcopy /Q /Y .\*.dll $(ProjectDir)publish
-xcopy /Q /Y .\syncotron.exe $(ProjectDir)publish
-xcopy /Q /Y .\syncotron.exe.config $(ProjectDir)publish
-xcopy /Q /Y .\syncotron.sh $(ProjectDir)publish
-"c:\Program Files\7-Zip\7z.exe" a $(ProjectDir)publish\syncotron.zip $(ProjectDir)publish\*.dll $(ProjectDir)publish\*.exe $(ProjectDir)publish\*.config $(ProjectDir)publish\*.sh</PostBuildEvent>
+    <PostBuildEventDependsOn>
+      $(PostBuildEventDependsOn);
+      PostBuildMacros;
+    </PostBuildEventDependsOn>
+    <PostBuildEvent>
+      xcopy /Q /Y $(ProjectDir)lib\sqlite3.dll .
+      xcopy /Q /Y .\*.dll $(ProjectDir)publish
+      xcopy /Q /Y .\syncotron.exe $(ProjectDir)publish
+      xcopy /Q /Y .\syncotron.exe.config $(ProjectDir)publish
+      xcopy /Q /Y .\syncotron.sh $(ProjectDir)publish
+      "c:\Program Files\7-Zip\7z.exe" a $(ProjectDir)publish\syncotron_@(VersionNumber).zip $(ProjectDir)publish\*.dll $(ProjectDir)publish\*.exe $(ProjectDir)publish\*.config $(ProjectDir)publish\*.sh
+    </PostBuildEvent>
   </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
