@@ -13,7 +13,8 @@ namespace Sbs20.Syncotron
     public class DropboxService : ICloudService
     {
         private const string DropboxErrorRestrictedContent = "path/restricted_content";
-        private const string DropboxPathNotFound = "path/not_found/";
+        private const string DropboxErrorPathNotFound = "path/not_found/";
+        private const string DropboxErrorDisallowedName = "path/disallowed_name/";
 
         private static readonly ILog log = LogManager.GetLogger(typeof(DropboxService));
         private FullAccount currentAccount = null;
@@ -180,77 +181,111 @@ namespace Sbs20.Syncotron
             }
         }
 
-        public async Task UploadAsync(FileItem file)
+        private async Task<string> ChunkUploadStreamAsync(Stream stream, 
+            string filepath,
+            ulong size,
+            DateTime lastModified)
         {
-            log.Debug("UploadAsync():Start");
-            FileInfo localFile = (FileInfo)file.Object;
+            int chunkSize = ReplicatorContext.HttpChunkSize;
+            int chunkCount = (int)Math.Ceiling((double)size / chunkSize);
+            string serverRev = null;
 
-            if (localFile == null)
+            byte[] buffer = new byte[chunkSize];
+            string sessionId = null;
+
+            var commitInfo = new CommitInfo(filepath,
+                WriteMode.Overwrite.Instance,
+                false,
+                lastModified);
+
+            for (var index = 0; index < chunkCount; index++)
             {
-                throw new InvalidOperationException("Cannot upload null file");
-            }
+                var read = await stream
+                    .ReadAsync(buffer, 0, chunkSize)
+                    .WithTimeout(TimeSpan.FromSeconds(this.context.HttpReadTimeoutInSeconds));
 
-            // Note - this is not ensuring the name is a valid dropbox file name
-            string remoteFileName = this.context.ToOppositePath(file);
-
-            // Use chunked upload
-            using (Stream stream = localFile.OpenRead())
-            {
-                int chunkSize = ReplicatorContext.HttpChunkSize;
-                int chunkCount = (int)Math.Ceiling((double)file.Size / chunkSize);
-
-                byte[] buffer = new byte[chunkSize];
-                string sessionId = null;
-
-                var commitInfo = new CommitInfo(remoteFileName,
-                    WriteMode.Overwrite.Instance,
-                    false,
-                    file.LastModified);
-
-                for (var index = 0; index < chunkCount; index++)
+                using (MemoryStream memoryStream = new MemoryStream(buffer, 0, read))
                 {
-                    var read = await stream
-                        .ReadAsync(buffer, 0, chunkSize)
-                        .WithTimeout(TimeSpan.FromSeconds(this.context.HttpReadTimeoutInSeconds));
-
-                    using (MemoryStream memoryStream = new MemoryStream(buffer, 0, read))
+                    if (chunkCount == 1)
                     {
-                        if (chunkCount == 1)
-                        {
-                            var result = await this.Client.Files
-                                .UploadAsync(commitInfo, memoryStream)
-                                .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
+                        var result = await this.Client.Files
+                            .UploadAsync(commitInfo, memoryStream)
+                            .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
 
-                            file.ServerRev = result.Rev;
-                        }
-                        else if (index == 0)
-                        {
-                            var result = await this.Client.Files
-                                .UploadSessionStartAsync(body: memoryStream)
-                                .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
+                        serverRev = result.Rev;
+                    }
+                    else if (index == 0)
+                    {
+                        var result = await this.Client.Files
+                            .UploadSessionStartAsync(body: memoryStream)
+                            .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
 
-                            sessionId = result.SessionId;
+                        sessionId = result.SessionId;
+                    }
+                    else
+                    {
+                        UploadSessionCursor cursor = new UploadSessionCursor(sessionId, (ulong)(chunkSize * index));
+
+                        bool isLastChunk = index == chunkCount - 1;
+                        if (!isLastChunk)
+                        {
+                            await this.Client.Files
+                                .UploadSessionAppendV2Async(cursor, body: memoryStream)
+                                .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
                         }
                         else
                         {
-                            UploadSessionCursor cursor = new UploadSessionCursor(sessionId, (ulong)(chunkSize * index));
+                            var result = await this.Client.Files
+                                .UploadSessionFinishAsync(cursor, commitInfo, memoryStream)
+                                .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
 
-                            bool isLastChunk = index == chunkCount - 1;
-                            if (!isLastChunk)
-                            {
-                                await this.Client.Files
-                                    .UploadSessionAppendV2Async(cursor, body: memoryStream)
-                                    .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
-                            }
-                            else
-                            {
-                                var result = await this.Client.Files
-                                    .UploadSessionFinishAsync(cursor, commitInfo, memoryStream)
-                                    .WithTimeout(TimeSpan.FromSeconds(this.context.HttpWriteTimeoutInSeconds));
-
-                                file.ServerRev = result.Rev;
-                            }
+                            serverRev = result.Rev;
                         }
+                    }
+                }
+            }
+
+            return serverRev;
+        }
+
+        public async Task UploadAsync(FileItem fileItem)
+        {
+            log.Debug("UploadAsync():Start");
+
+            // Note - this is not ensuring the name is a valid dropbox file name
+            string remotePath = this.context.ToOppositePath(fileItem);
+
+            if (fileItem.IsFolder)
+            {
+                DirectoryInfo localFile = (DirectoryInfo)fileItem.Object;
+                await this.Client.Files.CreateFolderAsync(remotePath);
+            }
+            else
+            {
+                FileInfo localFile = (FileInfo)fileItem.Object;
+
+                if (localFile == null)
+                {
+                    throw new InvalidOperationException("Cannot upload null file");
+                }
+
+                try
+                {
+                    using (Stream stream = localFile.OpenRead())
+                    {
+                        fileItem.ServerRev = await this.ChunkUploadStreamAsync(stream,
+                            remotePath, fileItem.Size, fileItem.LastModified);
+                    }
+                }
+                catch (ApiException<UploadError> ex)
+                {
+                    if (ex.Message.StartsWith(DropboxErrorDisallowedName))
+                    {
+                        log.WarnFormat("Unable to upload {0} [{1}]", fileItem.Path, ex.Message);
+                    }
+                    else
+                    {
+                        throw;
                     }
                 }
             }
@@ -287,7 +322,7 @@ namespace Sbs20.Syncotron
                         {
                             log.WarnFormat("Unable to download {0} [{1}]", fileItem.Path, ex.Message);
                         }
-                        else if (ex.Message.StartsWith(DropboxPathNotFound))
+                        else if (ex.Message.StartsWith(DropboxErrorPathNotFound))
                         {
                             // The file has been deleted before we got a chance to get it. Ignore
                             log.WarnFormat("Unable to download {0} [{1}]", fileItem.Path, ex.Message);
