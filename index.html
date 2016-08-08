@@ -63,9 +63,9 @@ or <a href="http://www.mono-project.com/download/">Mono</a>.</p>
 <a id="install-on-debian-linux" class="anchor" href="#install-on-debian-linux" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install on Debian linux</h2>
 
 <pre><code>sudo apt-get install mono-complete
-wget https://github.com/sbs20/syncotron/releases/download/v1.0.6011.26581-alpha/syncotron_1.0.6011.26581.zip
+wget https://github.com/sbs20/syncotron/releases/download/v1.0.6064.26149-beta/syncotron_1.0.6064.26149.zip
 sudo mkdir -p /opt/syncotron
-sudo unzip ~/syncotron_1.0.6011.26581.zip -d /opt/syncotron/bin
+sudo unzip ~/syncotron_1.0.6064.26149.zip -d /opt/syncotron/bin
 sudo chmod +x /opt/syncotron/bin/syncotron.sh
 </code></pre>
 
@@ -266,6 +266,11 @@ of the runtime of syncotron and I believe it's this:</p>
 <p>Although it was fixed a while ago, the fix hasn't got as far as the debian package on RPi. At
 least, that's my working theory. Although it's annoying, syncotron keeps track of what it has
 and hasn't done yet, so you can just re-run it with the same parameters.</p>
+
+<h3>
+<a id="_wapi_handle_unref-attempting-to-unref-unused-handle" class="anchor" href="#_wapi_handle_unref-attempting-to-unref-unused-handle" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>_wapi_handle_unref: Attempting to unref unused handle</h3>
+
+<p>As above I suspect. Mono only.</p>
 
 <h3>
 <a id="http-timeout" class="anchor" href="#http-timeout" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Http Timeout</h3>
