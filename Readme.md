@@ -34,9 +34,9 @@ Extract the files to a directory of your choice and run
 ## Install on Debian linux
 ```
 sudo apt-get install mono-complete
-wget https://github.com/sbs20/syncotron/releases/download/v1.0.6011.26581-alpha/syncotron_1.0.6011.26581.zip
+wget https://github.com/sbs20/syncotron/releases/download/v1.0.6064.26149-beta/syncotron_1.0.6064.26149.zip
 sudo mkdir -p /opt/syncotron
-sudo unzip ~/syncotron_1.0.6011.26581.zip -d /opt/syncotron/bin
+sudo unzip ~/syncotron_1.0.6064.26149.zip -d /opt/syncotron/bin
 sudo chmod +x /opt/syncotron/bin/syncotron.sh
 ```
 
