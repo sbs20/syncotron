@@ -384,7 +384,7 @@ namespace Sbs20.Syncotron
 
         public void ProgressUpdate(string filepath, ulong filesize, ulong bytes, DateTime start)
         {
-            SyncotronMain.ProgressUpdate(filepath, filesize, bytes, start);
+            SyncotronMain.TransferProgressWrite(filepath, filesize, bytes, start);
         }
     }
 }

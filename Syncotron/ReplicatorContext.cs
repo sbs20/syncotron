@@ -10,7 +10,7 @@ namespace Sbs20.Syncotron
 
         private const int DefaultHttpReadTimeoutInSeconds = 30;
         private const int DefaultHttpWriteTimeoutInSeconds = 30;
-        private const int DefaultHttpChunkSize = 2 * 1024 * 1024;
+        private const int DefaultHttpChunkSize = 1024 * 1024;
 
         private LocalStorage localStorage;
         private LocalFilesystemService localFilesystem;

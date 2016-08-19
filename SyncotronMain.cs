@@ -82,7 +82,7 @@ namespace Sbs20
             return context;
         }
 
-        public static void ProgressUpdate(string filepath, ulong filesize, ulong bytes, DateTime start)
+        public static void TransferProgressWrite(string filepath, ulong filesize, ulong bytes, DateTime start)
         {
             int left = Console.CursorLeft;
             int top = Console.CursorTop;
@@ -130,12 +130,11 @@ namespace Sbs20
 
                     replicator.ActionStart += (s, a) =>
                     {
-                        log.Info(a.ToString() + " [Start]");
+                        log.InfoFormat("{0} [{1}]", a.ToString(), FileSizeFormatter.Format(a.Size));
                     };
 
                     replicator.ActionComplete += (s, a) =>
                     {
-                        log.InfoFormat("{0} [Complete: {1}]", a.ToString(), FileSizeFormatter.Format(a.Size));
                     };
 
                     replicator.AnalysisComplete += (s, e) =>
