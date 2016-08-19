@@ -87,7 +87,7 @@ namespace Sbs20
             int left = Console.CursorLeft;
             int top = Console.CursorTop;
 
-            TimeSpan duration = DateTime.Now.Subtract(start);
+            TimeSpan duration = DateTime.Now.Subtract(start).Add(TimeSpan.FromMilliseconds(1));
             ulong kb = bytes / (1 << 10);
 
             Console.WriteLine("{0} / {1} ({2:p}) {3:0.0}kb/sec",
