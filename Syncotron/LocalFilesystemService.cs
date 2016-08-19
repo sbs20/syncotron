@@ -233,7 +233,7 @@ namespace Sbs20.Syncotron
             }
         }
 
-        public async Task WriteAsync(string path, Stream stream, DateTime lastModified)
+        public async Task WriteAsync(string path, ulong size, Stream stream, DateTime lastModified)
         {
             const string suffix = "-syncotron-tmp";
             string temp = path + suffix;
@@ -248,11 +248,14 @@ namespace Sbs20.Syncotron
             {
                 using (Stream localStream = tempFile.OpenWrite())
                 {
-                    byte[] buffer = new byte[ReplicatorContext.HttpChunkSize];
+                    byte[] buffer = new byte[this.context.HttpChunkSize];
                     int read;
+                    ulong offset = 0;
+                    DateTime start = DateTime.Now;
                     while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)
                         .WithTimeout(TimeSpan.FromSeconds(this.context.HttpReadTimeoutInSeconds))) > 0)
                     {
+                        this.ProgressUpdate(path, size, offset += (ulong)read, start);
                         await localStream.WriteAsync(buffer, 0, read);
                     }
                 }
@@ -377,6 +380,11 @@ namespace Sbs20.Syncotron
             }
 
             return Task.FromResult(fileItem);
+        }
+
+        public void ProgressUpdate(string filepath, ulong filesize, ulong bytes, DateTime start)
+        {
+            SyncotronMain.ProgressUpdate(filepath, filesize, bytes, start);
         }
     }
 }

@@ -3,7 +3,6 @@ using Sbs20.Common;
 using Sbs20.Extensions;
 using Sbs20.Syncotron;
 using System;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Sbs20
@@ -81,6 +80,23 @@ namespace Sbs20
             }
 
             return context;
+        }
+
+        public static void ProgressUpdate(string filepath, ulong filesize, ulong bytes, DateTime start)
+        {
+            int left = Console.CursorLeft;
+            int top = Console.CursorTop;
+
+            TimeSpan duration = DateTime.Now.Subtract(start);
+            ulong kb = bytes / (1 << 10);
+
+            Console.WriteLine("{0} / {1} ({2:p}) {3:0.0}kb/sec",
+                bytes,
+                filesize,
+                (double)bytes / filesize,
+                kb / duration.TotalSeconds);
+
+            Console.SetCursorPosition(left, top);
         }
 
         static void Main(string[] args)

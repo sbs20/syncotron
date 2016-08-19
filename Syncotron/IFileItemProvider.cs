@@ -11,5 +11,6 @@ namespace Sbs20.Syncotron
         Task<string> LatestCursorAsync(string path, bool recursive, bool deleted);
         Task MoveAsync(FileItem file, string desiredPath);
         Task DeleteAsync(string path);
+        void ProgressUpdate(string filepath, ulong filesize, ulong bytes, DateTime start);
     }
 }

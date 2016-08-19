@@ -186,7 +186,7 @@ namespace Sbs20.Syncotron
             ulong size,
             DateTime lastModified)
         {
-            int chunkSize = ReplicatorContext.HttpChunkSize;
+            int chunkSize = this.context.HttpChunkSize;
             int chunkCount = (int)Math.Ceiling((double)size / chunkSize);
             string serverRev = null;
 
@@ -198,11 +198,17 @@ namespace Sbs20.Syncotron
                 false,
                 lastModified);
 
+            DateTime start = DateTime.Now;
+
             for (var index = 0; index < chunkCount; index++)
             {
                 var read = await stream
                     .ReadAsync(buffer, 0, chunkSize)
                     .WithTimeout(TimeSpan.FromSeconds(this.context.HttpReadTimeoutInSeconds));
+
+                var offset = (ulong)(chunkSize * index);
+
+                this.ProgressUpdate(filepath, size, offset, start);
 
                 using (MemoryStream memoryStream = new MemoryStream(buffer, 0, read))
                 {
@@ -224,7 +230,7 @@ namespace Sbs20.Syncotron
                     }
                     else
                     {
-                        UploadSessionCursor cursor = new UploadSessionCursor(sessionId, (ulong)(chunkSize * index));
+                        UploadSessionCursor cursor = new UploadSessionCursor(sessionId, offset);
 
                         bool isLastChunk = index == chunkCount - 1;
                         if (!isLastChunk)
@@ -313,7 +319,7 @@ namespace Sbs20.Syncotron
 
                         using (var downloadStream = await response.GetContentAsStreamAsync())
                         {
-                            await this.context.LocalFilesystem.WriteAsync(localPath, downloadStream, remoteFile.ClientModified);
+                            await this.context.LocalFilesystem.WriteAsync(localPath, remoteFile.Size, downloadStream, remoteFile.ClientModified);
                         }
                     }
                     catch (ApiException<DownloadError> ex)
@@ -382,6 +388,11 @@ namespace Sbs20.Syncotron
             {
                 return null;
             }
+        }
+
+        public void ProgressUpdate(string filepath, ulong filesize, ulong bytes, DateTime start)
+        {
+            SyncotronMain.ProgressUpdate(filepath, filesize, bytes, start);
         }
 
         private FullAccount CurrentAccount
