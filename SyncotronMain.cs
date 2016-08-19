@@ -96,7 +96,9 @@ namespace Sbs20
                 (double)bytes / filesize,
                 kb / duration.TotalSeconds);
 
-            Console.SetCursorPosition(left, top);
+            // For some reason this isn't working in Mono - could be log4net or mono bug
+            Console.CursorTop = top;
+            Console.CursorLeft = left;
         }
 
         static void Main(string[] args)
