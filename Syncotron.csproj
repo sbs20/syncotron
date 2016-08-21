@@ -83,6 +83,7 @@
   <ItemGroup>
     <Compile Include="Common\FileSizeFormatter.cs" />
     <Compile Include="Common\ConsoleHelper.cs" />
+    <Compile Include="Common\Retry.cs" />
     <Compile Include="Data\DbController.cs" />
     <Compile Include="Data\Enumerations.cs" />
     <Compile Include="Extensions\EnumExtensions.cs" />

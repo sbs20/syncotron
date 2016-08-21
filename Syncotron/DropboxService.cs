@@ -2,6 +2,7 @@
 using Dropbox.Api.Files;
 using Dropbox.Api.Users;
 using log4net;
+using Sbs20.Common;
 using Sbs20.Extensions;
 using Sbs20.Syncotron.Diagnostics;
 using System;
@@ -277,11 +278,14 @@ namespace Sbs20.Syncotron
 
                 try
                 {
-                    using (Stream stream = localFile.OpenRead())
+                    await Retry.On<TimeoutException>(async () =>
                     {
-                        fileItem.ServerRev = await this.ChunkUploadStreamAsync(stream,
-                            remotePath, fileItem.Size, fileItem.LastModified);
-                    }
+                        using (Stream stream = localFile.OpenRead())
+                        {
+                            fileItem.ServerRev = await this.ChunkUploadStreamAsync(stream,
+                                remotePath, fileItem.Size, fileItem.LastModified);
+                        }
+                    }, 2);
                 }
                 catch (ApiException<UploadError> ex)
                 {
@@ -315,12 +319,15 @@ namespace Sbs20.Syncotron
                 {
                     try
                     {
-                        var response = await this.Client.Files.DownloadAsync(new DownloadArg(remoteFile.PathDisplay));
-
-                        using (var downloadStream = await response.GetContentAsStreamAsync())
+                        await Retry.On<TimeoutException>(async () =>
                         {
-                            await this.context.LocalFilesystem.WriteAsync(localPath, remoteFile.Size, downloadStream, remoteFile.ClientModified);
-                        }
+                            var response = await this.Client.Files.DownloadAsync(new DownloadArg(remoteFile.PathDisplay));
+
+                            using (var downloadStream = await response.GetContentAsStreamAsync())
+                            {
+                                await this.context.LocalFilesystem.WriteAsync(localPath, remoteFile.Size, downloadStream, remoteFile.ClientModified);
+                            }
+                        }, 2);
                     }
                     catch (ApiException<DownloadError> ex)
                     {
