@@ -205,8 +205,17 @@ namespace Sbs20.Syncotron
                     break;
 
                 case SyncActionType.Upload:
-                    await this.Context.CloudService.UploadAsync(action.Local);
-                    this.Context.LocalStorage.IndexWrite(action.Local);
+                    if (action.Local != null)
+                    {
+                        await this.Context.CloudService.UploadAsync(action.Local);
+                        this.Context.LocalStorage.IndexWrite(action.Local);
+                    }
+                    else
+                    {
+                        log.WarnFormat("Local file ({0}) no longer exists. Ignoring.", action.LocalPath);
+                        this.Context.LocalStorage.IndexDelete(action.LocalPath);
+                    }
+
                     break;
 
                 default:
