@@ -82,19 +82,22 @@ namespace Sbs20
             return context;
         }
 
-        public static void TransferProgressWrite(string filepath, ulong filesize, ulong bytes, DateTime start)
+        public static void TransferProgressWrite(string filepath, ulong size, ulong done, DateTime start)
         {
             int left = Console.CursorLeft;
             int top = Console.CursorTop;
 
             TimeSpan duration = DateTime.Now.Subtract(start).Add(TimeSpan.FromMilliseconds(1));
-            ulong kb = bytes / (1 << 10);
+            double rate = done / duration.TotalSeconds;
+            ulong notDone = size - done;
+            TimeSpan timeLeft = rate == 0 ? TimeSpan.FromHours(12) : TimeSpan.FromSeconds(notDone / rate);
 
-            Console.WriteLine("{0} / {1} ({2:p}) {3:0.0}kb/sec",
-                bytes,
-                filesize,
-                (double)bytes / filesize,
-                kb / duration.TotalSeconds);
+            Console.WriteLine("{0} / {1} ({2:p}) {3:0.0}kb/sec [{4} left]",
+                done,
+                size,
+                (double)done / size,
+                rate / 1024,
+                timeLeft);
 
             // For some reason this isn't working in Mono - could be log4net or mono bug
             Console.CursorTop = top;
