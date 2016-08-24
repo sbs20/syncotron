@@ -146,7 +146,15 @@ namespace Sbs20.Syncotron
             var fsi = this.ToFileSystemInfo(path);
             if (fsi.Exists)
             {
-                fsi.Delete();
+                if (fsi is DirectoryInfo)
+                {
+                    DirectoryInfo dir = fsi as DirectoryInfo;
+                    dir.Delete(true);
+                }
+                else
+                {
+                    fsi.Delete();
+                }
             }
 
             return Task.FromResult(0);
