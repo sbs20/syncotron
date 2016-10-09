@@ -164,6 +164,10 @@ namespace Sbs20
                         {
                             log.Warn(e.Message);
                         }
+                        else if (e is SyncotronException)
+                        {
+                            log.Error(e.Message);
+                        }
                         else
                         {
                             log.Error(e);
@@ -211,6 +215,7 @@ namespace Sbs20
             }
             catch (Exception ex)
             {
+                // This is really the error handling of last resort
                 log.Error(ex);
             }
         }

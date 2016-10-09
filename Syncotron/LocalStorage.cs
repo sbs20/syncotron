@@ -249,6 +249,12 @@ select
             return this.dbController.ExecuteAsEnumerableRows(sql).Select(r => ToFileItem(r));
         }
 
+        public void ActionDelete()
+        {
+            string sql = string.Format(@"delete from action;");
+            this.dbController.ExecuteNonQuery(sql);
+        }
+
         public void ActionDelete(SyncAction action)
         {
             string sql = string.Format(@"delete from action where Type={0} and Path={1};",

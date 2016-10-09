@@ -117,6 +117,7 @@
     <Compile Include="Syncotron\Replicator.cs" />
     <Compile Include="Syncotron\Settings.cs" />
     <Compile Include="Data\MonoSqliteController.cs" />
+    <Compile Include="Syncotron\SyncotronException.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">

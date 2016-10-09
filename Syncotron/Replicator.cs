@@ -263,6 +263,7 @@ namespace Sbs20.Syncotron
                 switch (this.Context.CommandType)
                 {
                     case CommandType.Reset:
+                        this.Context.LocalStorage.ActionDelete();
                         this.Context.LocalStorage.SettingsWrite("IsCertified", false);
                         this.Context.LocalCursor = null;
                         this.Context.RemoteCursor = null;

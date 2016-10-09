@@ -338,7 +338,7 @@ namespace Sbs20.Syncotron
 
             if (errorCount > 0)
             {
-                throw new InvalidOperationException("Errors found. Cannot certify");
+                throw new SyncotronException("Errors found. Cannot certify");
             }
 
             this.context.LocalStorage.BeginTransaction();

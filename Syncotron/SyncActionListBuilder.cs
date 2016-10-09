@@ -207,7 +207,7 @@ namespace Sbs20.Syncotron
                 // bad that we will defer to the user. If this is deliberate then the user can 
                 // either delete this job, manually delete remotely or reset. If not, perhaps
                 // it's a missing UNC share, then we've just saved the data.
-                throw new InvalidOperationException(
+                throw new SyncotronException(
                     "LocalPath is empty or does not exist, but this job has previously run. Aborting to protect data.");
             }
 
