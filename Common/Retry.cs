@@ -15,6 +15,7 @@ namespace Sbs20.Common
                 try
                 {
                     await f();
+                    break;
                 }
                 catch (TException ex)
                 {

@@ -44,7 +44,7 @@ namespace Sbs20.Syncotron
                 };
             }
 
-            if (context.IsRunningOnMono)
+            if (ReplicatorContext.IsRunningOnMono)
             {
                 Environment.SetEnvironmentVariable("MONO_IOMAP", "all");
             }
