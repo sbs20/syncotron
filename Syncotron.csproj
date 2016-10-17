@@ -58,8 +58,8 @@
     <ApplicationIcon>syncotron.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Dropbox.Api, Version=0.1.6058.19706, Culture=neutral, PublicKeyToken=310f0e82fbb45d01, processorArchitecture=MSIL">
-      <HintPath>packages\Dropbox.Api.3.5.0\lib\net45\Dropbox.Api.dll</HintPath>
+    <Reference Include="Dropbox.Api, Version=0.1.6116.35118, Culture=neutral, PublicKeyToken=310f0e82fbb45d01, processorArchitecture=MSIL">
+      <HintPath>packages\Dropbox.Api.3.6.0\lib\net45\Dropbox.Api.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
