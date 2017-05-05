@@ -265,7 +265,11 @@ namespace Sbs20.Syncotron
             if (fileItem.IsFolder)
             {
                 DirectoryInfo localFile = (DirectoryInfo)fileItem.Object;
-                await this.Client.Files.CreateFolderAsync(remotePath);
+                try
+                {
+                    await this.Client.Files.CreateFolderAsync(remotePath);
+                }
+                catch (ApiException<CreateFolderError>) { }
             }
             else
             {

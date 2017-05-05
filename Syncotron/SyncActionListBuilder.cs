@@ -235,7 +235,9 @@ namespace Sbs20.Syncotron
             {
                 // There's a minor expense in doing a further scan of files but it saves time
                 // when a previous job has failed (e.g. timeout) and avoids re-transferring
-                // files which already exist
+                // files which already exist. However, it can lead to confusion when working 
+                // out what action to take. Current workaround is to use -ConflictStrategy
+                // LatestWin. Consider making this optional instead
                 await this.FurtherScanForContinuation();
             }
 
