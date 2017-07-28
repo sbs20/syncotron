@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Sbs20.Syncotron
 {
@@ -30,6 +31,7 @@ namespace Sbs20.Syncotron
         public int HttpReadTimeoutInSeconds { get; set; }
         public int HttpWriteTimeoutInSeconds { get; set; }
         public int HttpChunkSize { get; set; }
+        public string DataPath { get; set; }
 
         public ReplicatorContext()
         {
@@ -69,19 +71,40 @@ namespace Sbs20.Syncotron
             return hash;
         }
 
-        public string LocalStorageFilename()
+        public DirectoryInfo DataDirectory
         {
-            return string.Format("syncotron_{0}.db", this.FileSuffix());
+            get { return new DirectoryInfo(this.DataPath ?? Directory.GetCurrentDirectory()); }
         }
 
-        public string LogFilename()
+        private FileInfo DataFileInfo(string filename)
         {
-            return string.Format("syncotron_{0}_{1:yyyy-MM-dd}.log", this.FileSuffix(), DateTime.Today);
+            string filepath = string.Format("{0}/{1}", this.DataDirectory.FullName, filename);
+            return new FileInfo(filepath);
         }
 
-        public string LockFilename()
+        public FileInfo LocalStorageFileInfo
         {
-            return string.Format("syncotron_{0}.lok", this.FileSuffix());
+            get
+            {
+                return DataFileInfo(string.Format(".syncotron_{0}.db", this.FileSuffix()));
+            }
+        }
+
+        public FileInfo LogFileInfo
+        {
+            get
+            {
+                string filename = string.Format("syncotron_{0}_{1:yyyy-MM-dd}.log", this.FileSuffix(), DateTime.Today);
+                return DataFileInfo(filename);
+            }
+        }
+
+        public FileInfo LockFileInfo
+        {
+            get
+            {
+                return DataFileInfo(string.Format(".syncotron_{0}.lok", this.FileSuffix()));
+            }
         }
 
         public LocalStorage LocalStorage
@@ -90,7 +113,7 @@ namespace Sbs20.Syncotron
             {
                 if (this.localStorage == null)
                 {
-                    this.localStorage = new LocalStorage(this.LocalStorageFilename());
+                    this.localStorage = new LocalStorage(this.LocalStorageFileInfo);
                 }
 
                 return this.localStorage;
@@ -192,11 +215,6 @@ namespace Sbs20.Syncotron
 
                 return this.cloudService;
             }
-        }
-
-        private System.IO.FileInfo LockFileInfo
-        {
-            get { return new System.IO.FileInfo(this.LockFilename()); }
         }
 
         public bool IsRunning

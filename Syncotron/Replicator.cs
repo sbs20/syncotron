@@ -56,6 +56,8 @@ namespace Sbs20.Syncotron
 
             context.IsRunning = true;
 
+            context.DataDirectory.Create();
+
             context.Persist();
         }
 

@@ -4,6 +4,7 @@ using Sbs20.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 
 namespace Sbs20.Syncotron
@@ -19,9 +20,9 @@ namespace Sbs20.Syncotron
         const string connectionStringStub = "URI=file:{0}";
         private MonoSqliteController dbController;
 
-        public LocalStorage(string filename)
+        public LocalStorage(FileInfo fileInfo)
         {
-            string connectionString = string.Format(connectionStringStub, filename);
+            string connectionString = string.Format(connectionStringStub, fileInfo.FullName);
             this.dbController = new MonoSqliteController(connectionString);
             this.dbController.JournalInMemory();
             this.StructureCreate();

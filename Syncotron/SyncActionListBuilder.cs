@@ -208,7 +208,9 @@ namespace Sbs20.Syncotron
                 // either delete this job, manually delete remotely or reset. If not, perhaps
                 // it's a missing UNC share, then we've just saved the data.
                 throw new SyncotronException(
-                    "LocalPath is empty or does not exist, but this job has previously run. Aborting to protect data.");
+                    "LocalPath is empty or does not exist, but this job has previously run. " +
+                    "Aborting to protect data. If this is all fine and you want to run anyway " +
+                    "just run once with \"-CommandType Reset\"");
             }
 
             // Do we already have stored actions?

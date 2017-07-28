@@ -27,7 +27,8 @@ namespace Sbs20
                 IgnoreCertificateErrors = false,
                 IsDebug = false,
                 ConflictStrategy = ConflictStrategy.RemoteWin,
-                Recover = false
+                Recover = false,
+                DataPath = null
             };
 
             if (arguments.ContainsKey("CommandType"))
@@ -79,6 +80,11 @@ namespace Sbs20
                 }
             }
 
+            if (arguments.ContainsKey("DataPath"))
+            {
+                context.DataPath = arguments["DataPath"];
+            }
+
             return context;
         }
 
@@ -126,14 +132,14 @@ namespace Sbs20
                     return;
                 }
 
-                GlobalContext.Properties["LogFilename"] = context.LogFilename();
+                GlobalContext.Properties["LogFilename"] = context.LogFileInfo.FullName;
                 log4net.Config.XmlConfigurator.Configure();
 
                 using (Replicator replicator = new Replicator(context))
                 {
                     log.Info("=======================================================");
                     log.InfoFormat("Starting syncotron ({0})", replicator.Version);
-                    log.InfoFormat("Current log / db: syncotron_{0}.xxx", context.FileSuffix());
+                    log.InfoFormat("Current db: {0}", context.LocalStorageFileInfo.FullName);
                     log.InfoFormat("CommandType: {0}", context.CommandType.ToString());
                     log.InfoFormat("Direction: {0}", context.SyncDirection.ToString());
                     log.InfoFormat("ScanMode: {0}", context.ScanMode.ToString());
